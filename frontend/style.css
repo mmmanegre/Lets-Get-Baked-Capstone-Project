@@ -1,1 +1,105 @@
+html, body{
+    font-family:'Times New Roman', Times, serif;
+    height: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+main{
+    flex: 1;
+    padding: 20px;
+    background-color: rgb(114,130,161);
+    
+}
+header{
+    font-family:'Times New Roman', Times, serif;
+    padding: 5px;
+    background-color: rgb(114,130,161);
+    border: 4px solid rgb(17,41,78);
+}
+.head{
+    display: flex;
+    align-items: center;
+    justify-content:space-between;
+    gap: 20px;
 
+}
+.logo{
+    width: 125px;
+    height: auto;
+}
+.flower{
+    width: 30px;
+    height: auto;
+}
+nav{
+    background-color: rgb(196,152,97);
+    font-size: large;
+    font-weight:700;
+    text-decoration: none;
+    display: flex;
+    justify-content: center;
+    gap: 45px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    padding-right: 10px;
+    padding-left: 10px;
+    width: 300px;
+    
+    border: 2px solid rgb(244,226,204);
+    border-radius: 20px;
+}
+nav a:hover{
+    color:rgb(93, 40, 52);
+}
+nav a:visited{
+    color:rgb(93, 40, 52);
+}
+nav a:active{
+    color:rgb(93, 40, 52);
+}
+section{
+    background-color: rgb(196,152,97);
+    border: 2px solid rgb(244,226,204);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 40px;
+    
+}
+.search-bar{
+    gap: 10px;
+    margin-left: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.search-bar input{
+    background-color: rgb(244,226,204);
+    padding: 8px 12px;
+    border: 2px solid rgb(93, 40, 52);
+    border-radius: 20px;
+    
+}
+.search-bar input:focus{
+    background-color: rgb(197, 183, 166);
+}
+.search-bar button{
+    background-color: rgb(244,226,204);
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 20px;
+    border: 2px solid rgb(93, 40, 52);
+}
+.search-bar button:hover{
+    background-color: rgb(197, 183, 166);
+}
+
+
+footer{
+    background-color:rgb(196,152,97);
+    text-align: center;
+    padding: 10px, 0;
+    border: 2px solid rgb(244,226,204);
+}
