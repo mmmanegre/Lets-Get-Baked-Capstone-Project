@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   console.log("Page:", page, "| User:", loggedInUser);
 
-  // redirect logic for after loggging in or out
+  // redirect logic for after logging in or out
   if (!loggedInUser && (page === "index.html" || page === "")) {
     window.location.href = "login.html";
     return;
@@ -112,6 +112,50 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutBtn.addEventListener("click", () => {
       localStorage.removeItem("loggedInUser");
       window.location.href = "login.html";
+    });
+  }
+
+  // Search Recipes
+  const searchForm = document.getElementById("searchForm"); 
+  const searchInput = document.getElementById("searchInput");
+  const mainArea = document.querySelector("main"); 
+
+  if (searchForm) {
+    searchForm.addEventListener("submit", async (e) => {
+      e.preventDefault();  // stops the browser from doing the default GET + navigation b/c we are sending request to our database instead of searching another page
+  
+      //Fill space if no recipes returned yet.
+      const term = searchInput.value.trim().toLowerCase();
+      if (!term) {
+        mainArea.innerHTML = "<p>Please enter something to search.</p>";
+        return;
+      }
+  
+      // Log to Console for debugging
+      console.log("Searching for:", term);
+
+      //Search recipes that have tags that contain the search term
+      const { data, error } = await supabase
+        .from("recipes")
+        .select("name")
+        .contains("tags", [term]);
+      
+      //Handle errors
+      if (error) {
+        console.error("Search error:", error);
+        mainArea.innerHTML = "<p>Oops! Search failed.</p>";
+        return;
+      }
+
+      //Return if no recipes found
+      if (data.length === 0) {
+        mainArea.innerHTML = "<p>No recipes found for “" + term + "”.</p>";
+        return;
+      }
+
+      // Build a simple list of recipe names if recipes found with matching term
+      const listItems = data.map(r => `<li>${r.name}</li>`).join("");
+      mainArea.innerHTML = `<ul>${listItems}</ul>`;
     });
   }
 });
