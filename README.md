@@ -1,7 +1,10 @@
 # Lets-Get-Baked-Capstone-Project
 Created by: Michelle Manegre, Kaylee Broadfield, and Ellie Mawuenyega
+
 Project Lead: Kaylee
+
 Developer Lead: Michelle
+
 Documentation Lead: Ellie
 
 
