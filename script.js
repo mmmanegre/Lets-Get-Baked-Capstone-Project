@@ -8,7 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const page = window.location.pathname.split("/").pop() || "index.html";
   const storedUser = localStorage.getItem("loggedInUser");
   const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
-
+  const isRecipePage = page == "recipe.html";
+  console.log("isRecipePage:", isRecipePage);
   console.log("Page:", page, "| User:", loggedInUser);
 
   // redirect logic for after logging in or out
@@ -154,8 +155,66 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Build a simple list of recipe names if recipes found with matching term
-      const listItems = data.map(r => `<li>${r.name}</li>`).join("");
+      //results are a clickable link to recipe page
+      const listItems = data.map(r => `<li><a href="recipe.html?id=${r.id}">${r.name}</a></li>`).join("");
       mainArea.innerHTML = `<ul>${listItems}</ul>`;
     });
   }
+  //recipe page
+if (isRecipePage) {
+ 
+
+  const params = new URLSearchParams(window.location.search);
+  const recipeId = params.get("id");
+
+  if (!recipeId) {
+    document.getElementById("recipe-container").innerHTML =
+      "<p>No recipe selected.</p>";
+    return;
+  }
+
+  loadSingleRecipe(recipeId);
+}
+
+// fetch just ONE recipe
+async function loadSingleRecipe(id) {
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error loading recipe:", error);
+    document.getElementById("recipe-container").innerHTML =
+      "<p>Error loading recipe.</p>";
+    return;
+  }
+
+  displaySingleRecipe(data);
+}
+
+function displaySingleRecipe(r) {
+  const container = document.getElementById("recipe-container");
+
+  container.innerHTML = `
+    <h1>${r.name}</h1>
+
+     ${r.image_url ? `<img src="${r.image_url}" class="recipe-img">` : ""}
+
+    <h2>Ingredients</h2>
+    <p>${r.ingredients}</p>
+
+    <h2>Intructions</h2>
+    <p>${r.description}</p>
+
+    <h3>Serving Size</h3>
+    <p>${r.calories} Calories</p>
+    <p>Serving Size: ${r.serving_size}</p>
+    <p>Servings: ${r.servings}</p>
+
+    <br><br>
+    <a href="index.html">← Back to home</a>
+  `;
+}
 });
