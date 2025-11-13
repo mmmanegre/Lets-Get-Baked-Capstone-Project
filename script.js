@@ -156,7 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Build a simple list of recipe names if recipes found with matching term
       //results are a clickable link to recipe page
-      const listItems = data.map(r => `<li><a href="recipe.html?id=${r.id}">${r.name}</a></li>`).join("");
+      const listItems = data.map(r => `<li><a href="./recipe.html?id=${r.id}">${r.name}</a></li>`).join("");
       mainArea.innerHTML = `<ul>${listItems}</ul>`;
     });
   }
