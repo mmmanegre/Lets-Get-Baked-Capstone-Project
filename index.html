@@ -50,27 +50,40 @@
         <img src="images/flower.png" class="flower">
     </section>
 
-    <!-- Filter Modal -->
-    <div id="filterModal" class="filter-modal" aria-hidden="true">
-        <div class="filter-modal-overlay"></div>
-
-        <div class="filter-modal-content" role="dialog" aria-modal="true" aria-labelledby="filterModalTitle">
-            <header class="filter-modal-header">
-                <h3 id="filterModalTitle">Filter Recipes</h3>
-                <button type="button" id="closeFilterModal" class="close-filter-btn" aria-label="Close filters">
+    <!-- FILTER PANEL (hidden by default, left column style) -->
+    <aside
+        id="filterPanel"
+        class="filter-panel hidden"
+        aria-hidden="true"
+    >
+        <div class="filter-panel-inner">
+            <header class="filter-panel-header">
+                <h3>Filter Recipes</h3>
+                <button
+                    type="button"
+                    id="closeFilterPanel"
+                    class="close-filter-btn"
+                    aria-label="Close filters"
+                >
                     ✖
                 </button>
             </header>
 
-            <div class="filter-modal-body">
-                <!-- Cook Time Range -->
-                <section class="filter-section">
+            <!-- Optional: small subheading / count -->
+            <p class="filter-panel-subtitle">
+                Narrow down recipes using cook time, calories, and ingredients.
+            </p>
+
+            <!-- Cook Time section -->
+            <section class="filter-group">
+                <div class="filter-group-header">
                     <h4>Cook Time</h4>
+                </div>
+                <div class="filter-group-body">
                     <p class="filter-help">
                         Select a maximum cook time. (Actual min/max will match available recipes.)
                     </p>
                     <div class="cook-time-filter">
-                        <!-- Slider; min/max will be set in JS based on recipe.cooktime -->
                         <input
                             type="range"
                             id="cookTimeSlider"
@@ -81,16 +94,18 @@
                             value="30"
                         />
                         <div class="cook-time-display">
-                            Up to
-                            <span id="cookTimeSliderValue">30</span>
-                            minutes
+                            Up to <span id="cookTimeSliderValue">30</span> minutes
                         </div>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- Calories Between -->
-                <section class="filter-section">
+            <!-- Calories section -->
+            <section class="filter-group">
+                <div class="filter-group-header">
                     <h4>Calories</h4>
+                </div>
+                <div class="filter-group-body">
                     <p class="filter-help">
                         Enter a calorie range for your recipes.
                     </p>
@@ -117,11 +132,15 @@
                             kcal
                         </label>
                     </div>
-                </section>
+                </div>
+            </section>
 
-                <!-- Ingredient Include/Exclude -->
-                <section class="filter-section">
+            <!-- Ingredients section -->
+            <section class="filter-group">
+                <div class="filter-group-header">
                     <h4>Ingredients</h4>
+                </div>
+                <div class="filter-group-body">
                     <p class="filter-help">
                         Add ingredients to include in or exclude from your search.
                     </p>
@@ -142,7 +161,6 @@
                             </button>
                         </div>
 
-                        <!-- Include / Exclude toggle -->
                         <div class="ingredient-mode-toggle">
                             <label for="ingredientMode">
                                 Mode:
@@ -153,15 +171,15 @@
                             </label>
                         </div>
 
-                        <!-- Dynamic list of added ingredients -->
                         <ul id="ingredientFilterList" class="ingredient-filter-list">
-                            <!-- JS will inject <li>Ingredient <button class="remove-ingredient">x</button></li> -->
+                            <!-- JS: <li>Ingredient <button class="remove-ingredient">x</button></li> -->
                         </ul>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
 
-            <footer class="filter-modal-footer">
+            <!-- Footer buttons -->
+            <footer class="filter-panel-footer">
                 <button type="button" id="clearFiltersBtn" class="clear-filters-btn">
                     Clear Filters
                 </button>
@@ -170,7 +188,7 @@
                 </button>
             </footer>
         </div>
-    </div>
+    </aside>
 
     <main>
         main area (recs?)
