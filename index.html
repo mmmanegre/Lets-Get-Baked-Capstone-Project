@@ -3,51 +3,185 @@
 <head>
     <title> Let's Get Baked!</title>
     <link rel="stylesheet" href="style.css">
-   
 </head>
 
 <body>
     <header>
-        
         <div class="head">
             <img src="images/logo1.png" class="logo">
-        <h2 id="welcomeMsg"></h2>
-           <nav>
-        <a href="index.html">Home</a>
-        <a href="profile.html">Profile</a>
-        <a href="savedrecipes.html">My Recipes</a>
-
+            <h2 id="welcomeMsg"></h2>
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="profile.html">Profile</a>
+                <a href="savedrecipes.html">My Recipes</a>
             </nav>
         </div>
-        
     </header>
     
     <section>
         <img src="images/flower.png" class="flower">
         <img src="images/flower.png" class="flower">
         <img src="images/flower.png" class="flower">
+
+        <!-- Search bar + filter button -->
         <form id="searchForm" class="search-bar">
-            <input id="searchInput" type="text" name="query" placeholder="Search recipes..." required>
+            <input
+                id="searchInput"
+                type="text"
+                name="query"
+                placeholder="Search recipes..."
+                required
+            />
             <button type="submit">🔍</button>
+
+            <!-- Filter icon button (does NOT submit form) -->
+            <button
+                type="button"
+                id="filterButton"
+                class="filter-button"
+                aria-label="Open filter options"
+            >
+                ⚙️
+            </button>
         </form>
+
         <img src="images/flower.png" class="flower">
         <img src="images/flower.png" class="flower">
         <img src="images/flower.png" class="flower">
-        
     </section>
-    
+
+    <!-- Filter Modal -->
+    <div id="filterModal" class="filter-modal" aria-hidden="true">
+        <div class="filter-modal-overlay"></div>
+
+        <div class="filter-modal-content" role="dialog" aria-modal="true" aria-labelledby="filterModalTitle">
+            <header class="filter-modal-header">
+                <h3 id="filterModalTitle">Filter Recipes</h3>
+                <button type="button" id="closeFilterModal" class="close-filter-btn" aria-label="Close filters">
+                    ✖
+                </button>
+            </header>
+
+            <div class="filter-modal-body">
+                <!-- Cook Time Range -->
+                <section class="filter-section">
+                    <h4>Cook Time</h4>
+                    <p class="filter-help">
+                        Select a maximum cook time. (Actual min/max will match available recipes.)
+                    </p>
+                    <div class="cook-time-filter">
+                        <!-- Slider; min/max will be set in JS based on recipe.cooktime -->
+                        <input
+                            type="range"
+                            id="cookTimeSlider"
+                            name="cook_time"
+                            min="0"
+                            max="120"
+                            step="5"
+                            value="30"
+                        />
+                        <div class="cook-time-display">
+                            Up to
+                            <span id="cookTimeSliderValue">30</span>
+                            minutes
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Calories Between -->
+                <section class="filter-section">
+                    <h4>Calories</h4>
+                    <p class="filter-help">
+                        Enter a calorie range for your recipes.
+                    </p>
+                    <div class="calorie-filter">
+                        <label for="caloriesMin">
+                            Between
+                            <input
+                                type="number"
+                                id="caloriesMin"
+                                name="calories_min"
+                                min="0"
+                                placeholder="min"
+                            />
+                        </label>
+                        <span>and</span>
+                        <label for="caloriesMax">
+                            <input
+                                type="number"
+                                id="caloriesMax"
+                                name="calories_max"
+                                min="0"
+                                placeholder="max"
+                            />
+                            kcal
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Ingredient Include/Exclude -->
+                <section class="filter-section">
+                    <h4>Ingredients</h4>
+                    <p class="filter-help">
+                        Add ingredients to include in or exclude from your search.
+                    </p>
+
+                    <div class="ingredient-filter">
+                        <div class="ingredient-input-row">
+                            <input
+                                type="text"
+                                id="ingredientFilterInput"
+                                placeholder="e.g. apples, peanuts"
+                            />
+                            <button
+                                type="button"
+                                id="addIngredientFilterBtn"
+                                class="add-ingredient-btn"
+                            >
+                                Add
+                            </button>
+                        </div>
+
+                        <!-- Include / Exclude toggle -->
+                        <div class="ingredient-mode-toggle">
+                            <label for="ingredientMode">
+                                Mode:
+                                <select id="ingredientMode" name="ingredient_mode">
+                                    <option value="include">Include these ingredients</option>
+                                    <option value="exclude">Exclude these ingredients</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <!-- Dynamic list of added ingredients -->
+                        <ul id="ingredientFilterList" class="ingredient-filter-list">
+                            <!-- JS will inject <li>Ingredient <button class="remove-ingredient">x</button></li> -->
+                        </ul>
+                    </div>
+                </section>
+            </div>
+
+            <footer class="filter-modal-footer">
+                <button type="button" id="clearFiltersBtn" class="clear-filters-btn">
+                    Clear Filters
+                </button>
+                <button type="button" id="applyFiltersBtn" class="apply-filters-btn">
+                    Apply Filters
+                </button>
+            </footer>
+        </div>
+    </div>
 
     <main>
         main area (recs?)
     </main>
+
     <footer>
         <p>Created by Michelle Kaylee and Ellie</p>
         <button id="logoutBtn">Logout</button>
     </footer>
 
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js" defer></script>
-
 </body>
 </html>
