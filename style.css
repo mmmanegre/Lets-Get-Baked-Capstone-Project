@@ -8,14 +8,14 @@ html, body{
 main{
     flex: 1;
     padding: 20px;
-    background-color: rgb(255, 205, 144);
+    background-color: rgb(114,130,161);
     
 }
 header{
     font-family:'Times New Roman', Times, serif;
     padding: 5px;
-    background-color: rgb(255, 205, 144);
-    border: 4px solid rgb(244,226,204);
+    background-color: rgb(114,130,161);
+    border: 4px solid rgb(17,41,78);
 }
 .head{
     display: flex;
