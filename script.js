@@ -1,7 +1,17 @@
 const SUPABASE_URL = "https://vbbxceqbzcfieymlcksu.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg"; // <-- your real key
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// helper: convert minutes (number) -> "HH:MM:SS" for cooktime (time column)
+function minutesToTimeString(minutes) {
+  const m = Number(minutes) || 0;
+  const hours = Math.floor(m / 60);
+  const mins = m % 60;
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(mins).padStart(2, "0");
+  return `${hh}:${mm}:00`;
+}
 
 //initialize page and make sure its loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -50,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       localStorage.setItem("loggedInUser", JSON.stringify({ username }));
-
+      
       window.location.href = "index.html";
     });
   }
@@ -92,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (error) throw error;
 
+        
         window.location.href = "login.html";
       } catch (err) {
         console.error("Error during signup:", err);
@@ -100,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // logout + welcome msg
+  // logout
   const logoutBtn = document.getElementById("logoutBtn");
   const welcomeMsg = document.getElementById("welcomeMsg");
 
@@ -116,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------------------------------------------------
-  // FILTER PANEL UI STATE + BUTTON LOGIC
+  // FILTER PANEL UI + STATE (NEW)
   // ---------------------------------------------------
 
   const filterButton = document.getElementById("filterButton");
@@ -136,16 +147,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearFiltersBtn = document.getElementById("clearFiltersBtn");
   const applyFiltersBtn = document.getElementById("applyFiltersBtn");
 
-  // Current filter state
+  // current filter state (NEW)
   const filterState = {
-    cookTimeMax: cookTimeSlider ? Number(cookTimeSlider.value) : null,
+    cookTimeMax: cookTimeSlider ? Number(cookTimeSlider.value) : null, // minutes
     caloriesMin: null,
     caloriesMax: null,
     ingredients: [],
     ingredientMode: ingredientModeSelect ? ingredientModeSelect.value : "include",
   };
 
-  // Open/close filter panel
+  // open/close filter panel (NEW)
   if (filterButton && filterPanel && closeFilterPanelBtn) {
     filterButton.addEventListener("click", () => {
       filterPanel.classList.remove("hidden");
@@ -158,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Cook time slider display
+  // cook time slider label (NEW)
   if (cookTimeSlider && cookTimeSliderValue) {
     cookTimeSliderValue.textContent = cookTimeSlider.value;
     cookTimeSlider.addEventListener("input", () => {
@@ -167,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Ingredient list rendering
+  // render ingredient list (NEW)
   function renderIngredientList() {
     if (!ingredientFilterList) return;
     if (filterState.ingredients.length === 0) {
@@ -186,13 +197,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   }
 
-  // Add ingredient button
+  // add ingredient (NEW)
   if (addIngredientFilterBtn && ingredientFilterInput) {
     addIngredientFilterBtn.addEventListener("click", () => {
       const raw = ingredientFilterInput.value.trim().toLowerCase();
       if (!raw) return;
 
-      // allow comma-separated or single
       const parts = raw
         .split(",")
         .map((s) => s.trim())
@@ -209,7 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Remove ingredient using event delegation
+  // remove ingredient (NEW)
   if (ingredientFilterList) {
     ingredientFilterList.addEventListener("click", (e) => {
       const target = e.target;
@@ -227,34 +237,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Track mode changes
+  // ingredient mode change (NEW)
   if (ingredientModeSelect) {
     ingredientModeSelect.addEventListener("change", () => {
       filterState.ingredientMode = ingredientModeSelect.value;
     });
   }
 
-  // Clear filters button
+  // clear filters (NEW)
   if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener("click", () => {
-      // Reset slider
       if (cookTimeSlider && cookTimeSliderValue) {
         cookTimeSlider.value = "30";
         cookTimeSliderValue.textContent = "30";
         filterState.cookTimeMax = 30;
       }
 
-      // Reset calories
       if (caloriesMinInput) caloriesMinInput.value = "";
       if (caloriesMaxInput) caloriesMaxInput.value = "";
       filterState.caloriesMin = null;
       filterState.caloriesMax = null;
 
-      // Reset ingredients
       filterState.ingredients = [];
       renderIngredientList();
 
-      // Reset mode
       if (ingredientModeSelect) {
         ingredientModeSelect.value = "include";
       }
@@ -263,10 +269,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------------------------------------------------
-  // HELPER: Load blocked ingredients from preferences
+  // helper: get blocked ingredients from preferences (NEW)
+  // preferences table: userid (varchar), preferences (_text)
+  // We treat all entries in preferences.preferences as ingredients to ALWAYS EXCLUDE.
   // ---------------------------------------------------
   async function getBlockedIngredientsForUser() {
-    // If no logged in user (shouldn't happen on index), no prefs
     if (!loggedInUser || !loggedInUser.username) {
       return [];
     }
@@ -274,17 +281,20 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const { data, error } = await supabase
         .from("preferences")
-        .select("ingredient, type")
-        .eq("username", loggedInUser.username);
+        .select("preferences")
+        .eq("userid", loggedInUser.username)
+        .maybeSingle();
 
-      if (error || !data) {
-        console.warn("Preferences error or none found:", error);
+      if (error || !data || !data.preferences) {
+        if (error) {
+          console.warn("Preferences error:", error);
+        }
         return [];
       }
 
-      const blocked = data
-        .filter((p) => p.type === "allergy" || p.type === "exclude")
-        .map((p) => (p.ingredient || "").toLowerCase().trim())
+      const arr = Array.isArray(data.preferences) ? data.preferences : [];
+      const blocked = arr
+        .map((p) => (p || "").toLowerCase().trim())
         .filter((ing) => ing.length > 0);
 
       return blocked;
@@ -295,24 +305,24 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------------------------------------------------
-  // Search Recipes (with filters + preferences)
+  // Search Recipes  (UPDATED)
   // ---------------------------------------------------
-
-  const searchForm = document.getElementById("searchForm");
+  const searchForm = document.getElementById("searchForm"); 
   const searchInput = document.getElementById("searchInput");
-  const mainArea = document.querySelector("main");
+  const mainArea = document.querySelector("main"); 
 
   if (searchForm) {
     searchForm.addEventListener("submit", async (e) => {
-      e.preventDefault(); // stops the browser from doing the default GET + navigation
-
+      e.preventDefault();  // stops the browser from doing the default GET + navigation b/c we are sending request to our database instead of searching another page
+  
+      //Fill space if no recipes returned yet.
       const term = searchInput.value.trim().toLowerCase();
       if (!term) {
         mainArea.innerHTML = "<p>Please enter something to search.</p>";
         return;
       }
 
-      // Sync filterState from current inputs (in case user typed directly)
+      // sync filterState from any direct input edits
       if (caloriesMinInput && caloriesMinInput.value !== "") {
         filterState.caloriesMin = Number(caloriesMinInput.value);
       } else {
@@ -328,27 +338,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (ingredientModeSelect) {
         filterState.ingredientMode = ingredientModeSelect.value;
       }
-
+  
+      // Log to Console for debugging
       console.log("Searching for:", term);
       console.log("Filter state:", filterState);
 
       const blockedIngredients = await getBlockedIngredientsForUser();
-      console.log("Blocked ingredients from preferences:", blockedIngredients);
+      console.log("Blocked ingredients:", blockedIngredients);
 
-      // Base query
+      // base query
       let query = supabase
         .from("recipes")
-        .select("id, name, cook_time, calories, tags, ingredients");
+        .select("id, name, cooktime, calories, tags, ingredients")
+        .contains("tags", [term]);   // search by tags array
 
-      // Tag search (tags is assumed text[] column)
-      query = query.contains("tags", [term]);
-
-      // Cook time filter (only max)
+      // cooktime filter (time) using minutes slider
       if (filterState.cookTimeMax != null) {
-        query = query.lte("cook_time", filterState.cookTimeMax);
+        const maxTimeStr = minutesToTimeString(filterState.cookTimeMax);
+        query = query.lte("cooktime", maxTimeStr);
       }
 
-      // Calories
+      // calories range
       if (filterState.caloriesMin != null) {
         query = query.gte("calories", filterState.caloriesMin);
       }
@@ -356,24 +366,22 @@ document.addEventListener("DOMContentLoaded", () => {
         query = query.lte("calories", filterState.caloriesMax);
       }
 
-      // Ingredient include/exclude (from filter UI)
+      // ingredient include/exclude from UI (recipes.ingredients is _text)
       if (filterState.ingredients.length > 0) {
         if (filterState.ingredientMode === "include") {
-          // recipe must contain all ingredients in list
           query = query.contains("ingredients", filterState.ingredients);
         } else if (filterState.ingredientMode === "exclude") {
-          // recipe must not overlap with these ingredients
           query = query.not("ingredients", "ov", filterState.ingredients);
         }
       }
 
-      // Always apply blocked ingredients (preferences)
+      // always exclude blocked ingredients from preferences
       if (blockedIngredients.length > 0) {
         query = query.not("ingredients", "ov", blockedIngredients);
       }
 
       const { data, error } = await query;
-
+      
       //Handle errors
       if (error) {
         console.error("Search error:", error);
@@ -383,91 +391,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
       //Return if no recipes found
       if (!data || data.length === 0) {
-        mainArea.innerHTML =
-          "<p>No recipes found for “" + term + "” with the selected filters.</p>";
+        mainArea.innerHTML = "<p>No recipes found for “" + term + "”.</p>";
         return;
       }
 
       // Build a simple list of recipe names if recipes found with matching term
-      // results are clickable links to recipe page
-      const listItems = data
-        .map(
-          (r) =>
-            `<li>
-              <a href="./recipe.html?id=${r.id}">${r.name}</a>
-              <small> — ${r.cook_time} min, ${r.calories} kcal</small>
-            </li>`
-        )
-        .join("");
+      //results are a clickable link to recipe page
+      const listItems = data.map(r => `
+        <li>
+          <a href="./recipe.html?id=${r.id}">${r.name}</a>
+          <small> — ${r.cooktime || ""} ${r.calories != null ? `, ${r.calories} kcal` : ""}</small>
+        </li>
+      `).join("");
       mainArea.innerHTML = `<ul>${listItems}</ul>`;
     });
   }
 
-  // Apply Filters button should close panel + re-run search with current term
+  // Apply Filters button: close filter + re-run current search (NEW)
   if (applyFiltersBtn && filterPanel && searchForm) {
     applyFiltersBtn.addEventListener("click", () => {
       filterPanel.classList.add("hidden");
       filterPanel.setAttribute("aria-hidden", "true");
-      // Trigger search submit programmatically
       searchForm.dispatchEvent(new Event("submit"));
     });
   }
 
-  // ---------------------------------------------------
-  // Recipe page
-  // ---------------------------------------------------
-  if (isRecipePage) {
-    const params = new URLSearchParams(window.location.search);
-    const recipeId = params.get("id");
+  //recipe page
+if (isRecipePage) {
+ 
 
-    if (!recipeId) {
-      document.getElementById("recipe-container").innerHTML =
-        "<p>No recipe selected.</p>";
-      return;
-    }
+  const params = new URLSearchParams(window.location.search);
+  const recipeId = params.get("id");
 
-    loadSingleRecipe(recipeId);
+  if (!recipeId) {
+    document.getElementById("recipe-container").innerHTML =
+      "<p>No recipe selected.</p>";
+    return;
   }
 
-  // fetch just ONE recipe
-  async function loadSingleRecipe(id) {
-    const { data, error } = await supabase
-      .from("recipes")
-      .select("*")
-      .eq("id", id)
-      .single();
+  loadSingleRecipe(recipeId);
+}
 
-    if (error) {
-      console.error("Error loading recipe:", error);
-      document.getElementById("recipe-container").innerHTML =
-        "<p>Error loading recipe.</p>";
-      return;
-    }
+// fetch just ONE recipe
+async function loadSingleRecipe(id) {
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    displaySingleRecipe(data);
+  if (error) {
+    console.error("Error loading recipe:", error);
+    document.getElementById("recipe-container").innerHTML =
+      "<p>Error loading recipe.</p>";
+    return;
   }
 
-  function displaySingleRecipe(r) {
-    const container = document.getElementById("recipe-container");
+  displaySingleRecipe(data);
+}
 
-    container.innerHTML = `
-      <h1>${r.name}</h1>
+function displaySingleRecipe(r) {
+  const container = document.getElementById("recipe-container");
 
-      ${r.image_url ? `<img src="${r.image_url}" class="recipe-img">` : ""}
+  container.innerHTML = `
+    <h1>${r.name}</h1>
 
-      <h2>Ingredients</h2>
-      <p>${r.ingredients}</p>
+     ${r.image_url ? `<img src="${r.image_url}" class="recipe-img">` : ""}
 
-      <h2>Intructions</h2>
-      <p>${r.description}</p>
+    <h2>Ingredients</h2>
+    <p>${r.ingredients}</p>
 
-      <h3>Serving Size</h3>
-      <p>${r.calories} Calories</p>
-      <p>Serving Size: ${r.serving_size}</p>
-      <p>Servings: ${r.servings}</p>
+    <h2>Intructions</h2>
+    <p>${r.description}</p>
 
-      <br><br>
-      <a href="index.html">← Back to home</a>
-    `;
-  }
+    <h3>Serving Size</h3>
+    <p>${r.calories} Calories</p>
+    <p>Serving Size: ${r.serving_size}</p>
+    <p>Servings: ${r.servings}</p>
+
+    <br><br>
+    <a href="index.html">← Back to home</a>
+  `;
+}
 });
