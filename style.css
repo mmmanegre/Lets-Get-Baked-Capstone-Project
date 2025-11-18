@@ -107,7 +107,7 @@ footer{
 /* --- Filter Panel (simple left-column popout) --- */
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 .filter-panel {
@@ -293,3 +293,60 @@ footer{
     visibility: visible;
     opacity: 1;
 }
+
+
+/* Toast */
+#toast {
+    visibility: hidden;
+    background: #333;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    position: fixed;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity .4s, visibility .4s;
+    font-size: 16px;
+    z-index: 9999;
+}
+#toast.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Custom Confirmation Popup */
+#confirm-popup {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+.hidden {
+    display: none;
+}
+.popup-box {
+    background: rgb(244,226,204);
+    border: 3px solid rgb(93,40,52);
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 260px;
+}
+.popup-box button {
+    margin: 8px;
+    padding: 6px 12px;
+    border: 2px solid rgb(93,40,52);
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+.popup-box button:hover {
+    background: rgb(197,183,166);
+}
+

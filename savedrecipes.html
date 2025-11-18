@@ -25,27 +25,117 @@
         <div id="saved-list"></div>
     </main>
 
+        <!-- Toast Notification -->
+    <div id="toast"></div>
+    
+    <!-- Confirmation Popup -->
+    <div id="confirm-popup" class="confirm hidden">
+        <div class="confirm-box">
+            <p id="confirm-message"></p>
+            <div class="confirm-buttons">
+                <button id="confirm-yes" class="yes">Yes</button>
+                <button id="confirm-no" class="no">No</button>
+            </div>
+        </div>
+    </div>
+
+
+
     <footer>
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
 
-    <script>
-        const savedList = document.getElementById("saved-list");
-        const savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+<script>
+    const savedList = document.getElementById("saved-list");
+    let savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+    let lastRemoved = null;
+
+    // Toast function
+    function showToast(message, undo = false) {
+        const toast = document.getElementById("toast");
+        toast.innerHTML = message + (undo ? ' <button id="undo-btn">Undo</button>' : '');
+        toast.classList.add("show");
+
+        if (undo) {
+            document.getElementById("undo-btn").onclick = undoRemove;
+        }
+
+        setTimeout(() => {
+            toast.classList.remove("show");
+        }, 3000);
+    }
+
+    // Show custom confirmation popup
+    function showConfirm(message, confirmCallback) {
+        const popup = document.getElementById("confirm-popup");
+        const confirmMessage = document.getElementById("confirm-message");
+        const yesBtn = document.getElementById("confirm-yes");
+        const noBtn = document.getElementById("confirm-no");
+
+        confirmMessage.textContent = message;
+        popup.classList.remove("hidden");
+
+        yesBtn.onclick = () => {
+            popup.classList.add("hidden");
+            confirmCallback();
+        };
+
+        noBtn.onclick = () => popup.classList.add("hidden");
+    }
+
+    // Undo logic
+    function undoRemove() {
+        if (lastRemoved) {
+            savedRecipes.push(lastRemoved);
+            localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
+            lastRemoved = null;
+            renderSavedRecipes();
+            showToast("Undo complete ✔️");
+        }
+    }
+
+    // Render saved recipes
+    function renderSavedRecipes() {
+        savedList.innerHTML = ""; 
 
         if (savedRecipes.length === 0) {
             savedList.innerHTML = "<p>No saved recipes yet.</p>";
-        } else {
-            savedRecipes.forEach(url => {
-                const link = document.createElement("a");
-                link.href = url;
-                link.textContent = url;
-                link.target = "_blank";
-                savedList.appendChild(link);
-                savedList.appendChild(document.createElement("br"));
-            });
+            return;
         }
-    </script>
+
+        savedRecipes.forEach((recipe, index) => {
+            const wrapper = document.createElement("div");
+            wrapper.style.marginBottom = "10px";
+
+            const link = document.createElement("a");
+            link.href = `recipe.html?id=${recipe.id}`;
+            link.textContent = recipe.name;
+            link.style.marginRight = "10px";
+
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove ❌";
+            removeBtn.style.cursor = "pointer";
+            removeBtn.style.padding = "4px 8px";
+
+            removeBtn.onclick = () => {
+                showConfirm(`Remove "${recipe.name}"?`, () => {
+                    lastRemoved = savedRecipes.splice(index, 1)[0];
+                    localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
+                    renderSavedRecipes();
+                    showToast(`Removed "${recipe.name}"`, true);
+                });
+            };
+
+            wrapper.appendChild(link);
+            wrapper.appendChild(removeBtn);
+            savedList.appendChild(wrapper);
+        });
+    }
+
+    renderSavedRecipes();
+</script>
+
+    
 
 </body>
 </html>

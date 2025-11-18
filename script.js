@@ -478,7 +478,7 @@ function displaySingleRecipe(r) {
 }
 });
 
-// save recipe notification
+// ---- SAVE RECIPE BY NAME + ID ---- //
 const saveBtn = document.getElementById("savebtn");
 
 function showToast(message = "Recipe saved! ❤️") {
@@ -493,17 +493,26 @@ function showToast(message = "Recipe saved! ❤️") {
 
 if (saveBtn) {
   saveBtn.addEventListener("click", () => {
-    const recipeURL = window.location.href;
+    const recipeName = document.querySelector("#recipe-container h1")?.textContent;
+    const recipeId = new URLSearchParams(window.location.search).get("id");
+
+    if (!recipeName || !recipeId) {
+      showToast("Error: Cannot save recipe ❌");
+      return;
+    }
 
     let savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
 
-    if (!savedRecipes.includes(recipeURL)) {
-      savedRecipes.push(recipeURL);
-      localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
-      showToast("Recipe saved! ❤️");
-    } else {
+    // Check if already saved
+    const exists = savedRecipes.some(recipe => recipe.id === recipeId);
+
+    if (exists) {
       showToast("Already saved ✔️");
+      return;
     }
+
+    savedRecipes.push({ name: recipeName, id: recipeId });
+    localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
+    showToast("Recipe saved! ❤️");
   });
 }
-
