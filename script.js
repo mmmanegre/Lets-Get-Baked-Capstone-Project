@@ -452,11 +452,14 @@ async function loadSingleRecipe(id) {
 
 function displaySingleRecipe(r) {
   const container = document.getElementById("recipe-container");
-
+  let imageElement = "";
+  if (r.picture) {
+    imageElement = `<img src="${r.picture}" class="recipe-img" style="max-width: 300px; border-radius: 8px;">`;
+  }
   container.innerHTML = `
     <h1>${r.name}</h1>
 
-     ${r.image_url ? `<img src="${r.image_url}" class="recipe-img">` : ""}
+     ${imageElement}
 
     <h2>Ingredients</h2>
     <p>${r.ingredients}</p>
