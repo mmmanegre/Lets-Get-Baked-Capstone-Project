@@ -1,33 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title> My Recipes</title>
+    <meta charset="UTF-8">
+    <title>My Recipes</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <header>
-        
         <div class="head">
             <img src="images/logo2.png" class="logo">
-        
-        
-            <nav>
-        <a href="index.html">Home</a>
-        <a href="profile.html">Profile</a>
-        <a href="savedrecipes.html">My Recipes</a>
 
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="profile.html">Profile</a>
+                <a href="savedrecipes.html">My Recipes</a>
             </nav>
         </div>
-        
     </header>
 
     <main>
-        recipes
+        <h2>Saved Recipes</h2>
+        <div id="saved-list"></div>
     </main>
+
     <footer>
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
+
+    <script>
+        const savedList = document.getElementById("saved-list");
+        const savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+
+        if (savedRecipes.length === 0) {
+            savedList.innerHTML = "<p>No saved recipes yet.</p>";
+        } else {
+            savedRecipes.forEach(url => {
+                const link = document.createElement("a");
+                link.href = url;
+                link.textContent = url;
+                link.target = "_blank";
+                savedList.appendChild(link);
+                savedList.appendChild(document.createElement("br"));
+            });
+        }
+    </script>
+
 </body>
 </html>

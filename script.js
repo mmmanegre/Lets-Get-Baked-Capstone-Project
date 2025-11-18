@@ -474,3 +474,33 @@ function displaySingleRecipe(r) {
   `;
 }
 });
+
+// save recipe notification
+const saveBtn = document.getElementById("savebtn");
+
+function showToast(message = "Recipe saved! ❤️") {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+
+if (saveBtn) {
+  saveBtn.addEventListener("click", () => {
+    const recipeURL = window.location.href;
+
+    let savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+
+    if (!savedRecipes.includes(recipeURL)) {
+      savedRecipes.push(recipeURL);
+      localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
+      showToast("Recipe saved! ❤️");
+    } else {
+      showToast("Already saved ✔️");
+    }
+  });
+}
+
