@@ -20,10 +20,6 @@ async function main() {
       console.log('Received event:', event);
 
       if (event.type === 'RecipeSaved') {
-        // This is where a real system might:
-        // - update a recommendation model
-        // - store analytics
-        // - send notifications
         console.log(
           `Reacting to RecipeSaved: User ${event.user} saved recipe ${event.recipeId}`
         );
