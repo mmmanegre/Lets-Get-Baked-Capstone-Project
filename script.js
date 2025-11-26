@@ -1,28 +1,64 @@
+// =======================
+// 🔌 SUPABASE CONNECTION
+// =======================
 const SUPABASE_URL = "https://vbbxceqbzcfieymlcksu.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg"; // <-- your real key
+const SUPABASE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg";
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// helper: convert minutes (number) -> "HH:MM:SS" for cooktime (time column)
+// Helper
 function minutesToTimeString(minutes) {
   const m = Number(minutes) || 0;
   const hours = Math.floor(m / 60);
   const mins = m % 60;
-  const hh = String(hours).padStart(2, "0");
-  const mm = String(mins).padStart(2, "0");
-  return `${hh}:${mm}:00`;
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}:00`;
 }
 
-//initialize page and make sure its loaded
+// Grab DOM elements safely
+const searchForm = document.getElementById("searchForm");
+const searchInput = document.getElementById("searchInput");
+const resultsBox = document.getElementById("resultsBox");
+const mainArea = document.querySelector("main");
+
+// FILTER ELEMENTS (optional)
+const filterButton = document.getElementById("filterButton");
+const filterPanel = document.getElementById("filterPanel");
+const closeFilterPanelBtn = document.getElementById("closeFilterPanel");
+const cookTimeSlider = document.getElementById("cookTimeSlider");
+const cookTimeSliderValue = document.getElementById("cookTimeSliderValue");
+const caloriesMinInput = document.getElementById("caloriesMin");
+const caloriesMaxInput = document.getElementById("caloriesMax");
+const ingredientFilterInput = document.getElementById("ingredientFilterInput");
+const addIngredientFilterBtn = document.getElementById("addIngredientFilterBtn");
+const ingredientFilterList = document.getElementById("ingredientFilterList");
+const ingredientModeSelect = document.getElementById("ingredientMode");
+const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+
+// SAVE BUTTON
+const saveBtn = document.getElementById("savebtn");
+
+// ⭐ SAFE FILTER STATE ⭐
+const filterState = {
+  cookTimeMax: cookTimeSlider ? Number(cookTimeSlider.value) : null,
+  caloriesMin: null,
+  caloriesMax: null,
+  ingredients: [],
+  ingredientMode: ingredientModeSelect ? ingredientModeSelect.value : "include",
+};
+
+// =======================
+// PAGE INITIALIZATION
+// =======================
 document.addEventListener("DOMContentLoaded", () => {
   const page = window.location.pathname.split("/").pop() || "index.html";
+
+  // USER LOGIN DATA
   const storedUser = localStorage.getItem("loggedInUser");
   const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
-  const isRecipePage = page == "recipe.html";
-  console.log("isRecipePage:", isRecipePage);
-  console.log("Page:", page, "| User:", loggedInUser);
 
-  // redirect logic for after logging in or out
+  // Redirect logic
   if (!loggedInUser && (page === "index.html" || page === "")) {
     window.location.href = "login.html";
     return;
@@ -32,91 +68,82 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // login
+  setupLogin();
+  setupSignup();
+  setupLogout(loggedInUser);
+  setupFilters();
+  setupSearch(loggedInUser);
+
+  // If on recipe.html → load recipe
+  if (page === "recipe.html") {
+    const id = new URLSearchParams(window.location.search).get("id");
+    if (id) loadSingleRecipe(id);
+  }
+
+  setupSaveButton();
+});
+
+// =======================
+// LOGIN SYSTEM
+// =======================
+function setupLogin() {
   const loginForm = document.getElementById("loginForm");
-  if (loginForm) {
-    console.log("Setting up login form");
-    loginForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  if (!loginForm) return;
 
-      const username = document.getElementById("loginUsername").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
+  loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      if (!username || !password) {
-        alert("Please enter both fields");
-        return;
-      }
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
 
-      const { data: user, error } = await supabase
-        .from("users")
-        .select("*")
-        .eq("username", username)
-        .eq("password", password)
-        .maybeSingle();
+    if (!username || !password) return alert("Enter all fields");
 
-      if (error || !user) {
-        alert("Invalid username or password");
-        return;
-      }
+    const { data: user, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", username)
+      .eq("password", password)
+      .maybeSingle();
 
-      localStorage.setItem("loggedInUser", JSON.stringify({ username }));
-      
-      window.location.href = "index.html";
-    });
-  }
+    if (error || !user) return alert("Invalid login");
 
-  // signup
+    localStorage.setItem("loggedInUser", JSON.stringify({ username }));
+    window.location.href = "index.html";
+  });
+}
+
+function setupSignup() {
   const signupForm = document.getElementById("signupForm");
-  if (signupForm) {
-    console.log("Setting up signup form");
-    signupForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+  if (!signupForm) return;
 
-      const username = document.getElementById("signupUsername").value.trim();
-      const password = document.getElementById("signupPassword").value.trim();
+  signupForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      console.log("Signup attempt:", username);
+    const username = document.getElementById("signupUsername").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
 
-      if (!username || !password) {
-        alert("Please enter both username and password.");
-        return;
-      }
+    if (!username || !password) return alert("Enter username + password");
 
-      try {
-        // check if username is already taken
-        const { data: existingUser, error: selectError } = await supabase
-          .from("users")
-          .select("*")
-          .eq("username", username);
+    const { data: existing } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", username);
 
-        if (selectError) throw selectError;
-        if (existingUser.length > 0) {
-          alert("Username already taken. Please choose a different one.");
-          return;
-        }
+    if (existing?.length > 0)
+      return alert("Username already taken.");
 
-        // put new user data into users table on supabase
-        const { data, error } = await supabase
-          .from("users")
-          .insert([{ username, password }]);
+    await supabase.from("users").insert([{ username, password }]);
 
-        if (error) throw error;
+    window.location.href = "login.html";
+  });
+}
 
-        
-        window.location.href = "login.html";
-      } catch (err) {
-        console.error("Error during signup:", err);
-        alert("Signup failed. Please try again.");
-      }
-    });
-  }
-
-  // logout
+function setupLogout(user) {
   const logoutBtn = document.getElementById("logoutBtn");
   const welcomeMsg = document.getElementById("welcomeMsg");
 
-  if (loggedInUser && welcomeMsg) {
-    welcomeMsg.textContent = `Hello ${loggedInUser.username}!`;
+  if (welcomeMsg && user) {
+    welcomeMsg.textContent = `Hello ${user.username}!`;
   }
 
   if (logoutBtn) {
@@ -125,51 +152,125 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = "login.html";
     });
   }
+}
 
-  // ---------------------------------------------------
-  // FILTER PANEL UI + STATE (NEW)
-  // ---------------------------------------------------
+// =======================
+// SEARCH + FILTERING
+// =======================
+function setupSearch(loggedInUser) {
+  if (!searchForm) return;
 
-  const filterButton = document.getElementById("filterButton");
-  const filterPanel = document.getElementById("filterPanel");
-  const closeFilterPanelBtn = document.getElementById("closeFilterPanel");
+  searchForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  const cookTimeSlider = document.getElementById("cookTimeSlider");
-  const cookTimeSliderValue = document.getElementById("cookTimeSliderValue");
-  const caloriesMinInput = document.getElementById("caloriesMin");
-  const caloriesMaxInput = document.getElementById("caloriesMax");
+    const term = searchInput?.value.trim().toLowerCase() || "";
 
-  const ingredientFilterInput = document.getElementById("ingredientFilterInput");
-  const addIngredientFilterBtn = document.getElementById("addIngredientFilterBtn");
-  const ingredientFilterList = document.getElementById("ingredientFilterList");
-  const ingredientModeSelect = document.getElementById("ingredientMode");
+    if (!term) {
+      fetchAllRecipes();
+      return;
+    }
 
-  const clearFiltersBtn = document.getElementById("clearFiltersBtn");
-  const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+    const blockedIngredients = await getBlockedIngredientsForUser(loggedInUser);
+    let query = supabase.from("recipes").select("*");
 
-  // current filter state (NEW)
-  const filterState = {
-    cookTimeMax: cookTimeSlider ? Number(cookTimeSlider.value) : null, // minutes
-    caloriesMin: null,
-    caloriesMax: null,
-    ingredients: [],
-    ingredientMode: ingredientModeSelect ? ingredientModeSelect.value : "include",
-  };
+    query = query.ilike("name", `%${term}%`);
 
-  // open/close filter panel (NEW)
-  if (filterButton && filterPanel && closeFilterPanelBtn) {
-    filterButton.addEventListener("click", () => {
-      filterPanel.classList.remove("hidden");
-      filterPanel.setAttribute("aria-hidden", "false");
-    });
+    if (filterState.cookTimeMax != null)
+      query = query.lte("cooktime", minutesToTimeString(filterState.cookTimeMax));
 
-    closeFilterPanelBtn.addEventListener("click", () => {
-      filterPanel.classList.add("hidden");
-      filterPanel.setAttribute("aria-hidden", "true");
-    });
+    if (filterState.caloriesMin != null)
+      query = query.gte("calories", filterState.caloriesMin);
+
+    if (filterState.caloriesMax != null)
+      query = query.lte("calories", filterState.caloriesMax);
+
+    if (filterState.ingredients.length > 0) {
+      if (filterState.ingredientMode === "include")
+        query = query.contains("ingredients", filterState.ingredients);
+      else
+        query = query.not("ingredients", "ov", filterState.ingredients);
+    }
+
+    if (blockedIngredients.length > 0)
+      query = query.not("ingredients", "ov", blockedIngredients);
+
+    const { data, error } = await query;
+
+    if (error || !data) {
+      mainArea.innerHTML = "<p>Error during search.</p>";
+      return;
+    }
+
+    if (data.length === 0) {
+      mainArea.innerHTML = `<p>No recipes found for "${term}".</p>`;
+      return;
+    }
+
+    mainArea.innerHTML = data
+      .map(
+        (r) => `
+        <li>
+            <a href="./recipe.html?id=${r.id}">${r.name}</a>
+            <small>${r.cooktime || ""} ${
+          r.calories ? `, ${r.calories} kcal` : ""
+        }</small>
+        </li>`
+      )
+      .join("");
+  });
+}
+
+async function fetchAllRecipes() {
+  const { data } = await supabase.from("recipes").select("*");
+  displayResults(data || []);
+}
+
+function displayResults(list) {
+  if (!resultsBox) return;
+
+  resultsBox.innerHTML = "";
+
+  if (list.length === 0) {
+    resultsBox.innerHTML = "<p>No recipes found.</p>";
+    return;
   }
 
-  // cook time slider label (NEW)
+  list.forEach((r) => {
+    const div = document.createElement("div");
+    div.className = "search-result";
+
+    const minutes = r.cooktime
+      ? parseInt(r.cooktime.split(":")[1]) +
+        parseInt(r.cooktime.split(":")[0]) * 60
+      : "Unknown";
+
+    div.innerHTML = `
+      <a href="./recipe.html?id=${r.id}">
+        <h3>${r.name}</h3>
+        <img src="${r.picture || "images/placeholder.png"}" height="120" />
+      </a>
+      <p><strong>Cook Time:</strong> ${minutes} min</p>
+      <p><strong>Calories:</strong> ${r.calories ?? "N/A"}</p>
+      <p><strong>Tags:</strong> ${r.tags?.join(", ") || "None"}</p>
+    `;
+
+    resultsBox.appendChild(div);
+  });
+}
+
+// =======================
+// FILTER PANEL SETUP
+// =======================
+function setupFilters() {
+  if (filterButton && filterPanel && closeFilterPanelBtn) {
+    filterButton.addEventListener("click", () =>
+      filterPanel.classList.remove("hidden")
+    );
+    closeFilterPanelBtn.addEventListener("click", () =>
+      filterPanel.classList.add("hidden")
+    );
+  }
+
   if (cookTimeSlider && cookTimeSliderValue) {
     cookTimeSliderValue.textContent = cookTimeSlider.value;
     cookTimeSlider.addEventListener("input", () => {
@@ -178,76 +279,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // render ingredient list (NEW)
-  function renderIngredientList() {
-    if (!ingredientFilterList) return;
-    if (filterState.ingredients.length === 0) {
-      ingredientFilterList.innerHTML = "";
-      return;
-    }
-
-    ingredientFilterList.innerHTML = filterState.ingredients
-      .map(
-        (ing, index) =>
-          `<li data-index="${index}">
-            <span>${ing}</span>
-            <button type="button" class="remove-ingredient">x</button>
-          </li>`
-      )
-      .join("");
-  }
-
-  // add ingredient (NEW)
   if (addIngredientFilterBtn && ingredientFilterInput) {
     addIngredientFilterBtn.addEventListener("click", () => {
       const raw = ingredientFilterInput.value.trim().toLowerCase();
       if (!raw) return;
 
-      const parts = raw
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-
-      for (const p of parts) {
-        if (!filterState.ingredients.includes(p)) {
-          filterState.ingredients.push(p);
-        }
-      }
+      raw.split(",").forEach((i) => {
+        const ing = i.trim();
+        if (ing && !filterState.ingredients.includes(ing))
+          filterState.ingredients.push(ing);
+      });
 
       ingredientFilterInput.value = "";
       renderIngredientList();
     });
   }
 
-  // remove ingredient (NEW)
   if (ingredientFilterList) {
     ingredientFilterList.addEventListener("click", (e) => {
-      const target = e.target;
-      if (!target.classList.contains("remove-ingredient")) return;
+      if (!e.target.classList.contains("remove-ingredient")) return;
 
-      const li = target.closest("li");
-      const indexStr = li?.getAttribute("data-index");
-      if (indexStr == null) return;
-
-      const index = Number(indexStr);
-      if (!Number.isNaN(index)) {
-        filterState.ingredients.splice(index, 1);
-        renderIngredientList();
-      }
+      const li = e.target.closest("li");
+      const index = Number(li.dataset.index);
+      filterState.ingredients.splice(index, 1);
+      renderIngredientList();
     });
   }
 
-  // ingredient mode change (NEW)
   if (ingredientModeSelect) {
     ingredientModeSelect.addEventListener("change", () => {
       filterState.ingredientMode = ingredientModeSelect.value;
     });
   }
 
-  // clear filters (NEW)
   if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener("click", () => {
-      if (cookTimeSlider && cookTimeSliderValue) {
+      if (cookTimeSlider) {
         cookTimeSlider.value = "30";
         cookTimeSliderValue.textContent = "30";
         filterState.cookTimeMax = 30;
@@ -255,184 +322,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (caloriesMinInput) caloriesMinInput.value = "";
       if (caloriesMaxInput) caloriesMaxInput.value = "";
+
       filterState.caloriesMin = null;
       filterState.caloriesMax = null;
-
       filterState.ingredients = [];
       renderIngredientList();
 
-      if (ingredientModeSelect) {
+      if (ingredientModeSelect)
         ingredientModeSelect.value = "include";
-      }
       filterState.ingredientMode = "include";
     });
   }
 
-  // ---------------------------------------------------
-  // helper: get blocked ingredients from preferences (NEW)
-  // preferences table: userid (varchar), preferences (_text)
-  // We treat all entries in preferences.preferences as ingredients to ALWAYS EXCLUDE.
-  // ---------------------------------------------------
-  async function getBlockedIngredientsForUser() {
-    if (!loggedInUser || !loggedInUser.username) {
-      return [];
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from("preferences")
-        .select("preferences")
-        .eq("userid", loggedInUser.username)
-        .maybeSingle();
-
-      if (error || !data || !data.preferences) {
-        if (error) {
-          console.warn("Preferences error:", error);
-        }
-        return [];
-      }
-
-      const arr = Array.isArray(data.preferences) ? data.preferences : [];
-      const blocked = arr
-        .map((p) => (p || "").toLowerCase().trim())
-        .filter((ing) => ing.length > 0);
-
-      return blocked;
-    } catch (err) {
-      console.error("Error fetching preferences:", err);
-      return [];
-    }
-  }
-
-  // ---------------------------------------------------
-  // Search Recipes  (UPDATED)
-  // ---------------------------------------------------
-  const searchForm = document.getElementById("searchForm"); 
-  const searchInput = document.getElementById("searchInput");
-  const mainArea = document.querySelector("main"); 
-
-  if (searchForm) {
-    searchForm.addEventListener("submit", async (e) => {
-      e.preventDefault();  // stops the browser from doing the default GET + navigation b/c we are sending request to our database instead of searching another page
-  
-      //Fill space if no recipes returned yet.
-      const term = searchInput.value.trim().toLowerCase();
-      if (!term) {
-        mainArea.innerHTML = "<p>Please enter something to search.</p>";
-        return;
-      }
-
-      // sync filterState from any direct input edits
-      if (caloriesMinInput && caloriesMinInput.value !== "") {
-        filterState.caloriesMin = Number(caloriesMinInput.value);
-      } else {
-        filterState.caloriesMin = null;
-      }
-
-      if (caloriesMaxInput && caloriesMaxInput.value !== "") {
-        filterState.caloriesMax = Number(caloriesMaxInput.value);
-      } else {
-        filterState.caloriesMax = null;
-      }
-
-      if (ingredientModeSelect) {
-        filterState.ingredientMode = ingredientModeSelect.value;
-      }
-  
-      // Log to Console for debugging
-      console.log("Searching for:", term);
-      console.log("Filter state:", filterState);
-
-      const blockedIngredients = await getBlockedIngredientsForUser();
-      console.log("Blocked ingredients:", blockedIngredients);
-
-      // base query
-      let query = supabase
-        .from("recipes")
-        .select("id, name, cooktime, calories, tags, ingredients")
-        .contains("tags", [term]);   // search by tags array
-
-      // cooktime filter (time) using minutes slider
-      if (filterState.cookTimeMax != null) {
-        const maxTimeStr = minutesToTimeString(filterState.cookTimeMax);
-        query = query.lte("cooktime", maxTimeStr);
-      }
-
-      // calories range
-      if (filterState.caloriesMin != null) {
-        query = query.gte("calories", filterState.caloriesMin);
-      }
-      if (filterState.caloriesMax != null) {
-        query = query.lte("calories", filterState.caloriesMax);
-      }
-
-      // ingredient include/exclude from UI (recipes.ingredients is _text)
-      if (filterState.ingredients.length > 0) {
-        if (filterState.ingredientMode === "include") {
-          query = query.contains("ingredients", filterState.ingredients);
-        } else if (filterState.ingredientMode === "exclude") {
-          query = query.not("ingredients", "ov", filterState.ingredients);
-        }
-      }
-
-      // always exclude blocked ingredients from preferences
-      if (blockedIngredients.length > 0) {
-        query = query.not("ingredients", "ov", blockedIngredients);
-      }
-
-      const { data, error } = await query;
-      
-      //Handle errors
-      if (error) {
-        console.error("Search error:", error);
-        mainArea.innerHTML = "<p>Oops! Search failed.</p>";
-        return;
-      }
-
-      //Return if no recipes found
-      if (!data || data.length === 0) {
-        mainArea.innerHTML = "<p>No recipes found for “" + term + "”.</p>";
-        return;
-      }
-
-      // Build a simple list of recipe names if recipes found with matching term
-      //results are a clickable link to recipe page
-      const listItems = data.map(r => `
-        <li>
-          <a href="./recipe.html?id=${r.id}">${r.name}</a>
-          <small> — ${r.cooktime || ""} ${r.calories != null ? `, ${r.calories} kcal` : ""}</small>
-        </li>
-      `).join("");
-      mainArea.innerHTML = `<ul>${listItems}</ul>`;
-    });
-  }
-
-  // Apply Filters button: close filter + re-run current search (NEW)
   if (applyFiltersBtn && filterPanel && searchForm) {
     applyFiltersBtn.addEventListener("click", () => {
       filterPanel.classList.add("hidden");
-      filterPanel.setAttribute("aria-hidden", "true");
       searchForm.dispatchEvent(new Event("submit"));
     });
   }
-
-  //recipe page
-if (isRecipePage) {
- 
-
-  const params = new URLSearchParams(window.location.search);
-  const recipeId = params.get("id");
-
-  if (!recipeId) {
-    document.getElementById("recipe-container").innerHTML =
-      "<p>No recipe selected.</p>";
-    return;
-  }
-
-  loadSingleRecipe(recipeId);
 }
 
-// fetch just ONE recipe
+function renderIngredientList() {
+  if (!ingredientFilterList) return;
+
+  ingredientFilterList.innerHTML = filterState.ingredients
+    .map(
+      (ing, index) =>
+        `<li data-index="${index}">
+            <span>${ing}</span>
+            <button class="remove-ingredient">x</button>
+        </li>`
+    )
+    .join("");
+}
+
+// =======================
+// PREFS EXCLUSION
+// =======================
+async function getBlockedIngredientsForUser(user) {
+  if (!user) return [];
+
+  const { data } = await supabase
+    .from("preferences")
+    .select("preferences")
+    .eq("userid", user.username)
+    .maybeSingle();
+
+  return (data?.preferences || [])
+    .map((i) => i.toLowerCase().trim())
+    .filter((i) => i);
+}
+
+// =======================
+// RECIPE PAGE LOADING
+// =======================
 async function loadSingleRecipe(id) {
   const { data, error } = await supabase
     .from("recipes")
@@ -440,8 +383,7 @@ async function loadSingleRecipe(id) {
     .eq("id", id)
     .single();
 
-  if (error) {
-    console.error("Error loading recipe:", error);
+   if (error || !data) {
     document.getElementById("recipe-container").innerHTML =
       "<p>Error loading recipe.</p>";
     return;
@@ -452,67 +394,77 @@ async function loadSingleRecipe(id) {
 
 function displaySingleRecipe(r) {
   const container = document.getElementById("recipe-container");
-  let imageElement = "";
-  if (r.picture) {
-    imageElement = `<img src="${r.picture}" class="recipe-img" style="max-width: 300px; border-radius: 8px;">`;
-  }
+  if (!container) return;
+
+  const minutes = r.cooktime
+    ? parseInt(r.cooktime.split(":")[1]) +
+      parseInt(r.cooktime.split(":")[0]) * 60
+    : "Unknown";
+
   container.innerHTML = `
-    <h1>${r.name}</h1>
+      <h1>${r.name}</h1>
+      <img src="${r.picture || "images/placeholder.png"}" class="recipe-image" />
 
-     ${imageElement}
+      <h3>Description</h3>
+      <p>${r.description || "No description available."}</p>
 
-    <h2>Ingredients</h2>
-    <p>${r.ingredients}</p>
+      <h3>Cook Time</h3>
+      <p>${minutes} minutes</p>
 
-    <h2>Intructions</h2>
-    <p>${r.description}</p>
+      <h3>Calories</h3>
+      <p>${r.calories ?? "N/A"}</p>
 
-    <h3>Serving Size</h3>
-    <p>${r.calories} Calories</p>
-    <p>Serving Size: ${r.serving_size}</p>
-    <p>Servings: ${r.servings}</p>
+      <h3>Servings</h3>
+      <p>${r.servings ?? "N/A"}</p>
 
-    <br><br>
-    <a href="index.html">← Back to home</a>
+      <h3>Serving Size</h3>
+      <p>${r.serving_size ?? "N/A"}</p>
+
+      <h3>Ingredients</h3>
+      <ul>${r.ingredients
+        ?.map((i) => `<li>${i}</li>`)
+        .join("") || "<li>No ingredients listed.</li>"}</ul>
+
+      <h3>Ingredients Per Yield</h3>
+      <ul>${r.num_of_ingredients_per_yield
+        ?.map((i) => `<li>${i}</li>`)
+        .join("") || "<li>None</li>"}</ul>
+
+      <h3>Tags</h3>
+      <p>${r.tags?.join(", ") || "None"}</p>
   `;
 }
-});
 
-// ---- SAVE RECIPE BY NAME + ID ---- //
-const saveBtn = document.getElementById("savebtn");
+// =======================
+// SAVE BUTTON
+// =======================
+function setupSaveButton() {
+  if (!saveBtn) return;
 
-function showToast(message = "Recipe saved! ❤️") {
-  const toast = document.getElementById("toast");
-  toast.textContent = message;
-  toast.classList.add("show");
-
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2000);
-}
-
-if (saveBtn) {
   saveBtn.addEventListener("click", () => {
-    const recipeName = document.querySelector("#recipe-container h1")?.textContent;
+    const container = document.getElementById("recipe-container");
+    const recipeName = container?.querySelector("h1")?.textContent;
     const recipeId = new URLSearchParams(window.location.search).get("id");
 
-    if (!recipeName || !recipeId) {
-      showToast("Error: Cannot save recipe ❌");
-      return;
-    }
+    if (!recipeName || !recipeId)
+      return showToast("Error: Cannot save recipe ❌");
 
-    let savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+    let saved = JSON.parse(localStorage.getItem("savedRecipes")) || [];
+    if (saved.some((r) => r.id === recipeId))
+      return showToast("Already saved ✔️");
 
-    // Check if already saved
-    const exists = savedRecipes.some(recipe => recipe.id === recipeId);
+    saved.push({ name: recipeName, id: recipeId });
+    localStorage.setItem("savedRecipes", JSON.stringify(saved));
 
-    if (exists) {
-      showToast("Already saved ✔️");
-      return;
-    }
-
-    savedRecipes.push({ name: recipeName, id: recipeId });
-    localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
     showToast("Recipe saved! ❤️");
   });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+
+  toast.textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2000);
 }
