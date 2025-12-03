@@ -376,22 +376,38 @@ async function getBlockedIngredientsForUser(user) {
 // RECIPE PAGE LOADING
 // =======================
 async function loadSingleRecipe(id) {
-  const { data, error } = await supabase
+  //Fetch main recipe
+  const { data: recipe, error: recipeError } = await supabase
     .from("recipes")
     .select("*")
     .eq("id", id)
     .single();
 
-   if (error || !data) {
+  if (recipeError || !recipe) {
+    console.error("Error loading recipe:", recipeError);
     document.getElementById("recipe-container").innerHTML =
       "<p>Error loading recipe.</p>";
     return;
   }
 
-  displaySingleRecipe(data);
+  //Fetch ingredients from normalized table
+  const { data: ingredients, error: ingError } = await supabase
+    .from("recipeingredients")
+    .select("*")
+    .eq("recipeid", id.toString())
+
+
+
+  if (ingError) {
+    console.error("Ingredient error:", ingError);
+  }
+
+  //Pass both to display function
+  displaySingleRecipe(recipe, ingredients || []);
 }
 
-function displaySingleRecipe(r) {
+
+function displaySingleRecipe(r, ingredients) {
   const container = document.getElementById("recipe-container");
   if (!container) return;
 
@@ -399,6 +415,19 @@ function displaySingleRecipe(r) {
     ? parseInt(r.cooktime.split(":")[1]) +
       parseInt(r.cooktime.split(":")[0]) * 60
     : "Unknown";
+
+  
+  const ingredientList = ingredients.length
+    ? ingredients
+        .map((ing) => {
+          const name = ing.ingredient_name ?? "Unknown ingredient";
+          const amount = ing.amount_per_ingredient ?? "";
+          const unit = ing.units ?? "";
+
+          return `<li>${amount} ${unit} ${name}</li>`;
+        })
+        .join("")
+    : "<li>No ingredients listed.</li>";
 
   container.innerHTML = `
       <h1>${r.name}</h1>
@@ -420,24 +449,17 @@ function displaySingleRecipe(r) {
       <p>${r.serving_size ?? "N/A"}</p>
 
       <h3>Ingredients</h3>
-      <ul>${r.ingredients
-        ?.map((i) => `<li>${i}</li>`)
-        .join("") || "<li>No ingredients listed.</li>"}</ul>
-
-      <h3>Ingredients Per Yield</h3>
-      <ul>${r.num_of_ingredients_per_yield
-        ?.map((i) => `<li>${i}</li>`)
-        .join("") || "<li>None</li>"}</ul>
+      <ul>${ingredientList}</ul>
 
       <h3>Tags</h3>
       <p>${r.tags?.join(", ") || "None"}</p>
   `;
-  // Enable Add to Cart button
+
+  
   const cartBtn = document.getElementById("cartbtn");
   if (cartBtn) {
-    cartBtn.onclick = () => addIngredientsToCart(r);
+    cartBtn.onclick = () => addIngredientsToCart(ingredients);
   }
-
 }
 
 // =======================
