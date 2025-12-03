@@ -1,33 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Shopping List/cart/thing</title>
+    <meta charset="UTF-8">
+    <title>Shopping List</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
     <header>
-        
         <div class="head">
             <img src="images/logo2.png" class="logo">
-        
-        
+
             <nav>
-        <a href="index.html">Home</a>
-        <a href="profile.html">Profile</a>
-        <a href="savedrecipes.html">My Recipes</a>
-        <a href="shop.html">Shopping List</a>
+                <a href="index.html">Home</a>
+                <a href="profile.html">Profile</a>
+                <a href="savedrecipes.html">My Recipes</a>
+                <a href="shop.html">Shopping List</a>
             </nav>
         </div>
-        
     </header>
-    
+
     <main>
-        stuff
+        <h1>Your Shopping List</h1>
+        <ul id="shopping-list"></ul>
     </main>
+
     <footer>
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
+
+    <!-- Supabase client -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+        const supabase = createClient(
+            "https://vbbxceqbzcfieymlcksu.supabase.co",
+            "YOUR_PUBLIC_ANON_KEY_HERE"
+        );
+
+        async function loadShoppingList() {
+            const user = await supabase.auth.getUser();
+            if (!user.data.user) return;
+
+            const { data, error } = await supabase
+                .from("shopping_list")
+                .select("*")
+                .eq("user_id", user.data.user.id);
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            const list = document.getElementById("shopping-list");
+            list.innerHTML = "";
+
+            data.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item.ingredient;
+                list.appendChild(li);
+            });
+        }
+
+        loadShoppingList();
+    </script>
+
 </body>
 </html>

@@ -432,6 +432,12 @@ function displaySingleRecipe(r) {
       <h3>Tags</h3>
       <p>${r.tags?.join(", ") || "None"}</p>
   `;
+  // Enable Add to Cart button
+  const cartBtn = document.getElementById("cartbtn");
+  if (cartBtn) {
+    cartBtn.onclick = () => addIngredientsToCart(r);
+  }
+
 }
 
 // =======================
@@ -458,6 +464,46 @@ function setupSaveButton() {
     showToast("Recipe saved! ❤️");
   });
 }
+
+// =======================
+// ADD TO CART (SHOPPING LIST)
+// =======================
+async function addIngredientsToCart(recipe) {
+  const storedUser = localStorage.getItem("loggedInUser");
+  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
+
+  if (!loggedInUser) {
+    showToast("Please log in to add items 🛒");
+    return;
+  }
+
+  const username = loggedInUser.username;
+
+  const ingredients = recipe.ingredients || [];
+  if (ingredients.length === 0) {
+    showToast("No ingredients to add ⚠️");
+    return;
+  }
+
+  // Format rows for Supabase
+  const rows = ingredients.map(ing => ({
+    username: username,
+    ingredient: ing,
+    recipe_id: recipe.id
+  }));
+
+  const { error } = await supabase
+    .from("shopping_list")
+    .insert(rows);
+
+  if (error) {
+    console.error("Cart error:", error);
+    showToast("Could not add to cart ❌");
+  } else {
+    showToast("Ingredients added to shopping list! 🛒");
+  }
+}
+
 
 function showToast(msg) {
   const toast = document.getElementById("toast");
