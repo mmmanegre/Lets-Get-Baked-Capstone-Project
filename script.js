@@ -66,9 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "index.html";
     return;
   }
-  if (loggedInUser) {
-    loadUserTags(loggedInUser.username);
-  }
+  
   
   setupLogin();
   setupSignup();
@@ -541,34 +539,3 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
-//user tags pulling
-async function loadUserTags(username) {
-  const { data, error } = await supabase
-    .from("users")
-    .select("tags")
-    .eq("username", username)
-    .maybeSingle();
-
-  const list = document.getElementById("userTagsList");
-
-  //clean list
-  list.innerHTML = "";
-
-  if (error) {
-    console.error("Error loading user tags:", error);
-    list.innerHTML = "<li>Error loading tags.</li>";
-    return;
-  }
-
-  if (!data || !data.tags || data.tags.length === 0) {
-    list.innerHTML = "<li>No tags saved.</li>";
-    return;
-  }
-
-  //print tags
-  data.tags.forEach(tag => {
-    const li = document.createElement("li");
-    li.textContent = tag;
-    list.appendChild(li);
-  });
-}
