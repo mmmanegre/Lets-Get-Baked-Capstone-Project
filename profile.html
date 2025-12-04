@@ -24,7 +24,28 @@
     </header>
     
     <main>
-        profile info, sign up or log in options if not already signed in
+        <div class="profileinfo">
+        <h3>User Profile</h3>
+        <h2 id="welcomeMsg"></h2>
+        
+        <div class="usertags-box">
+            <h3>Your Interests</h3>
+            <ul id="userTagsList"></ul>
+        </div>
+
+        </div>
+        <div class="pref-box">
+            <h2>Your Preferences</h2>
+            <p>Input any allergens, or ingredients you do not want in searched recipes</p>
+            <input type="text" id="avoidInput"/>
+            <button id="addAvoidBtn">Add</button>
+
+            <h3>Current List of Filtered out Ingredients</h3>
+            <ul id="avoidList"></ul>
+
+            <button id="saveprefbtn">Save Preferences</button>
+            <p id="prefstatus"></p>
+        </div>
     </main>
     <footer>
         <p>Created by Michelle, Kaylee, and Ellie</p>
