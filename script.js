@@ -66,7 +66,11 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "index.html";
     return;
   }
-  
+  if (loggedInUser && page === "profile.html") {
+      loadPreferences(loggedInUser.username);
+      loadUserTags(loggedInUser.username);
+  }
+
   
   setupLogin();
   setupSignup();
@@ -355,6 +359,80 @@ function renderIngredientList() {
     )
     .join("");
 }
+//=======
+//prefs
+//========
+const saveprefbtn = document.getElementById("saveprefbtn");
+
+if (saveprefbtn) {
+  saveprefbtn.addEventListener("click", async () => {
+    const stored = localStorage.getItem("loggedInUser");
+    if (!stored) return;
+    const username = JSON.parse(stored).username;
+
+    const avoidItems = [];
+    document.querySelectorAll("#avoidList li").forEach(li => {
+      avoidItems.push(li.textContent);
+    });
+
+    const { error } = await supabase
+      .from("preferences")
+      .upsert(
+        {
+          userid: username,
+          preferences: avoidItems
+        },
+        { onConflict: "userid" }
+      );
+
+    document.getElementById("prefstatus").textContent =
+      error ? "Error saving." : "Preferences saved!";
+  });
+}
+//add button
+const addAvoidBtn = document.getElementById("addAvoidBtn");
+
+if (addAvoidBtn) {
+  addAvoidBtn.addEventListener("click", () => {
+    const input = document.getElementById("avoidInput");
+    const value = input.value.trim().toLowerCase();
+
+    if (!value) return;
+
+    const li = document.createElement("li");
+    li.textContent = value;
+
+    // click to remove
+    li.onclick = () => li.remove();
+
+    document.getElementById("avoidList").appendChild(li);
+    input.value = "";
+  });
+}
+//load user prefs
+async function loadPreferences(username) {
+  const { data, error } = await supabase
+    .from("preferences")
+    .select("preferences")
+    .eq("userid", username)
+    .maybeSingle();
+
+  const avoidList = document.getElementById("avoidList");
+  avoidList.innerHTML = ""; // clear previous content
+
+  if (error || !data) return;
+
+  (data.preferences || []).forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item;
+
+    // click to remove
+    li.onclick = () => li.remove();
+
+    avoidList.appendChild(li);
+  });
+}
+
 
 
 
@@ -537,5 +615,36 @@ function showToast(msg) {
   toast.textContent = msg;
   toast.classList.add("show");
   setTimeout(() => toast.classList.remove("show"), 2000);
+}
+//user tags pulling
+async function loadUserTags(username) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("tags")
+    .eq("username", username)
+    .maybeSingle();
+
+  const list = document.getElementById("userTagsList");
+
+  //clean list
+  list.innerHTML = "";
+
+  if (error) {
+    console.error("Error loading user tags:", error);
+    list.innerHTML = "<li>Error loading tags.</li>";
+    return;
+  }
+
+  if (!data || !data.tags || data.tags.length === 0) {
+    list.innerHTML = "<li>No tags saved.</li>";
+    return;
+  }
+
+  //print tags
+  data.tags.forEach(tag => {
+    const li = document.createElement("li");
+    li.textContent = tag;
+    list.appendChild(li);
+  });
 }
 
