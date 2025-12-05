@@ -1,0 +1,31 @@
+// Grab DOM elements safely
+export const searchForm = document.getElementById("searchForm");
+export const searchInput = document.getElementById("searchInput");
+export const resultsBox = document.getElementById("resultsBox");
+export const mainArea = document.querySelector("main");
+
+// FILTER ELEMENTS
+export const filterButton = document.getElementById("filterButton");
+export const filterPanel = document.getElementById("filterPanel");
+export const closeFilterPanelBtn = document.getElementById("closeFilterPanel");
+export const cookTimeSlider = document.getElementById("cookTimeSlider");
+export const cookTimeSliderValue = document.getElementById("cookTimeSliderValue");
+export const caloriesMinInput = document.getElementById("caloriesMin");
+export const caloriesMaxInput = document.getElementById("caloriesMax");
+export const ingredientFilterInput = document.getElementById("ingredientFilterInput");
+export const addIngredientFilterBtn = document.getElementById("addIngredientFilterBtn");
+export const ingredientFilterList = document.getElementById("ingredientFilterList");
+export const ingredientModeSelect = document.getElementById("ingredientMode");
+export const clearFiltersBtn = document.getElementById("clearFiltersBtn");
+export const applyFiltersBtn = document.getElementById("applyFiltersBtn");
+
+export const saveBtn = document.getElementById("savebtn");
+
+// ⭐ FILTER STATE
+export const filterState = {
+  cookTimeMax: cookTimeSlider ? Number(cookTimeSlider.value) : null,
+  caloriesMin: null,
+  caloriesMax: null,
+  ingredients: [],
+  ingredientMode: ingredientModeSelect ? ingredientModeSelect.value : "include",
+};
