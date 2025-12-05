@@ -394,7 +394,7 @@ async function loadSingleRecipe(id) {
   const { data: ingredients, error: ingError } = await supabase
     .from("recipeingredients")
     .select("*")
-    .eq("recipeid", id.toString())
+    .eq("recipeid", id.toString());
 
 
 
@@ -424,7 +424,7 @@ function displaySingleRecipe(r, ingredients) {
           const amount = ing.amount_per_ingredient ?? "";
           const unit = ing.units ?? "";
 
-          return `<li>${amount} ${unit} ${name}</li>`;
+          return `<li class="ingredient-item">${amount} ${unit} ${name}</li>`;
         })
         .join("")
     : "<li>No ingredients listed.</li>";
@@ -458,7 +458,7 @@ function displaySingleRecipe(r, ingredients) {
   
   const cartBtn = document.getElementById("cartbtn");
   if (cartBtn) {
-    cartBtn.onclick = () => addIngredientsToCart(ingredients);
+    cartBtn.onclick = () => addIngredientsToCart(r, ingredients);
   }
 }
 
@@ -490,7 +490,7 @@ function setupSaveButton() {
 // =======================
 // ADD TO CART (SHOPPING LIST)
 // =======================
-async function addIngredientsToCart(recipe) {
+async function addIngredientsToCart(recipe, ingredients) {
   const storedUser = localStorage.getItem("loggedInUser");
   const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
 
@@ -501,22 +501,19 @@ async function addIngredientsToCart(recipe) {
 
   const username = loggedInUser.username;
 
-  const ingredients = recipe.ingredients || [];
-  if (ingredients.length === 0) {
-    showToast("No ingredients to add ⚠️");
+  const ingredientElements = document.querySelectorAll(".ingredient-item");
+  if (ingredientElements.length === 0) {
+    showToast("No ingredients found ⚠️");
     return;
   }
 
-  // Format rows for Supabase
-  const rows = ingredients.map(ing => ({
-    username: username,
-    ingredient: ing,
-    recipe_id: recipe.id
+  const rows = Array.from(ingredientElements).map(li => ({
+    username,
+    recipe_id: recipe.id,
+    ingredient: li.textContent.trim()
   }));
 
-  const { error } = await supabase
-    .from("shopping_list")
-    .insert(rows);
+  const { error } = await supabase.from("shopping_list").insert(rows);
 
   if (error) {
     console.error("Cart error:", error);

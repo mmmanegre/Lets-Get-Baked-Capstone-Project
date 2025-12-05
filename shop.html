@@ -31,40 +31,74 @@
     </footer>
 
     <!-- Supabase client -->
-    <script type="module">
-        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
-        const supabase = createClient(
-            "https://vbbxceqbzcfieymlcksu.supabase.co",
-            "YOUR_PUBLIC_ANON_KEY_HERE"
-        );
+const supabase = createClient(
+    "https://vbbxceqbzcfieymlcksu.supabase.co",
+    "YOUR_PUBLIC_ANON_KEY_HERE"
+);
 
-        async function loadShoppingList() {
-            const user = await supabase.auth.getUser();
-            if (!user.data.user) return;
+async function loadShoppingList() {
+    // 1. Get Supabase authenticated user (correct way)
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData?.user;
 
-            const { data, error } = await supabase
-                .from("shopping_list")
-                .select("*")
-                .eq("user_id", user.data.user.id);
+    if (!user) {
+        document.getElementById("shopping-list").innerHTML =
+            "<li>Please log in to see your shopping list.</li>";
+        return;
+    }
 
-            if (error) {
-                console.error(error);
-                return;
-            }
+    // 2. Load items using user_id (matches your save script)
+    const { data, error } = await supabase
+        .from("shopping_list")
+        .select("*")
+        .eq("user_id", user.id);
 
-            const list = document.getElementById("shopping-list");
-            list.innerHTML = "";
+    if (error) {
+        console.error("Supabase error:", error);
+        return;
+    }
 
-            data.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = item.ingredient;
-                list.appendChild(li);
-            });
-        }
+    const list = document.getElementById("shopping-list");
+    list.innerHTML = "";
 
-        loadShoppingList();
-    </script>
+    if (!data || data.length === 0) {
+        list.innerHTML = "<li>Your list is empty!</li>";
+        return;
+    }
+
+    // 3. Render items
+    data.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item.ingredient;
+
+        // Add delete button
+        const btn = document.createElement("button");
+        btn.textContent = "❌";
+        btn.style.marginLeft = "10px";
+        btn.onclick = () => deleteItem(item.id);
+
+        li.appendChild(btn);
+        list.appendChild(li);
+    });
+}
+
+// 4. Delete item
+async function deleteItem(id) {
+    const { error } = await supabase
+        .from("shopping_list")
+        .delete()
+        .eq("id", id);
+
+    if (error) console.error(error);
+
+    loadShoppingList();
+}
+
+loadShoppingList();
+</script>
 
 </body>
 </html>
