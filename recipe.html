@@ -104,7 +104,7 @@ async function saveIngredients() {
     // If NOT LOGGED IN → save locally
     if (!user) {
         addIngredientsToLocalCart(ingredients);
-        alert("Ingredients saved locally! Log in to sync to your shopping list.");
+        alert("Ingredients saved! Navigate to your shopping list.");
         return;
     }
 
