@@ -30,55 +30,31 @@
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
 
-    <!-- Supabase client -->
-    <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const listEl = document.getElementById("shopping-list");
 
-    const supabase = createClient(
-    "https://vbbxceqbzcfieymlcksu.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg"
-    );
+        function getShoppingList() {
+            return JSON.parse(localStorage.getItem("shoppingList")) || [];
+        }
 
-    const listEl = document.getElementById("shopping-list");
+        function renderList(items) {
+            listEl.innerHTML = "";
 
-    function renderItems(items) {
-    listEl.innerHTML = "";
-    if (items.length === 0) {
-        listEl.innerHTML = "<li>No items yet.</li>";
-        return;
-    }
+            if (items.length === 0) {
+                listEl.innerHTML = "<li>No items yet.</li>";
+                return;
+            }
 
-    items.forEach(i => {
-        const li = document.createElement("li");
-        li.textContent = i.ingredient;
-        listEl.appendChild(li);
+            items.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                listEl.appendChild(li);
+            });
+        }
+
+        renderList(getShoppingList());
     });
-    }
-
-    async function loadShoppingList() {
-    const storedUser = localStorage.getItem("loggedInUser");
-    if (!storedUser) {
-        renderItems([]);
-        return;
-    }
-
-    const { username } = JSON.parse(storedUser);
-
-    const { data, error } = await supabase
-        .from("shopping_list")
-        .select("ingredient")
-        .eq("username", username);
-
-    if (error) {
-        console.error("Load error:", error);
-        renderItems([]);
-        return;
-    }
-
-    renderItems(data || []);
-    }
-
-    document.addEventListener("DOMContentLoaded", loadShoppingList);
     </script>
 
 

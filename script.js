@@ -568,42 +568,71 @@ function setupSaveButton() {
   });
 }
 
-// =======================
-// ADD TO CART (FIXED)
-// =======================
-async function addIngredientsToCart(recipe, ingredients) {
-  const storedUser = localStorage.getItem("loggedInUser");
-  if (!storedUser) {
-    showToast("Please log in to add items 🛒");
-    return;
-  }
+// ==============================
+// ADD TO SHOPPING LIST (LOCAL)
+// ==============================
 
-  const { username } = JSON.parse(storedUser);
-
-  const ingredientElements = document.querySelectorAll(".ingredient-item");
-  if (ingredientElements.length === 0) {
-    showToast("No ingredients found ⚠️");
-    return;
-  }
-
-  const rows = Array.from(ingredientElements).map(li => ({
-    username: username,          // ✅ MATCHES shopping_list table
-    recipe_id: recipe.id,
-    ingredient: li.textContent.trim()
-  }));
-
-  const { error } = await supabase
-    .from("shopping_list")
-    .insert(rows);
-
-  if (error) {
-    console.error("Cart insert error:", error);
-    showToast("Could not add to shopping list ❌");
-  } else {
-    showToast("Ingredients added to shopping list! 🛒");
-  }
+// Get shopping list from localStorage
+function getShoppingList() {
+    return JSON.parse(localStorage.getItem("shoppingList")) || [];
 }
 
+// Save shopping list to localStorage
+function saveShoppingList(list) {
+    localStorage.setItem("shoppingList", JSON.stringify(list));
+}
+
+// Add ingredients to shopping list
+function addToShoppingList() {
+    const ingredientEls = document.querySelectorAll(".ingredient-item");
+
+    if (ingredientEls.length === 0) {
+        alert("No ingredients found.");
+        return;
+    }
+
+    const ingredients = Array.from(ingredientEls).map(el =>
+        el.textContent.trim()
+    );
+
+    const shoppingList = getShoppingList();
+
+    ingredients.forEach(item => {
+        if (!shoppingList.includes(item)) {
+            shoppingList.push(item);
+        }
+    });
+
+    saveShoppingList(shoppingList);
+    alert("Ingredients added to shopping list 🛒");
+}
+
+// Attach button listener
+document.addEventListener("DOMContentLoaded", () => {
+    const cartBtn = document.getElementById("cartbtn");
+
+    if (!cartBtn) {
+        console.error("❌ cartbtn not found");
+        return;
+    }
+
+    cartBtn.addEventListener("click", addToShoppingList);
+});
+
+
+// ----------------------
+// BUTTON WIRING
+// ----------------------
+document.addEventListener("DOMContentLoaded", () => {
+  const cartBtn = document.getElementById("cartbtn");
+
+  if (!cartBtn) {
+    console.error("cartbtn not found");
+    return;
+  }
+
+  cartBtn.addEventListener("click", addToShoppingList);
+});
 
 function showToast(msg) {
   const toast = document.getElementById("toast");
