@@ -492,7 +492,7 @@ function displaySingleRecipe(r, ingredients) {
   const container = document.getElementById("recipe-container");
   if (!container) return;
 
-  const originalServings = r.servings || 1;
+  const BaseServings = Number(r.servings) || 1;
 
   const minutes = r.cooktime
     ? parseInt(r.cooktime.split(":")[1]) +
@@ -543,24 +543,57 @@ function displaySingleRecipe(r, ingredients) {
   if (cartBtn) {
     cartBtn.onclick = () => addIngredientsToCart(r, ingredients);
   }
-}
-//===========
+  //===========
 //recipe scaling
 //===========
-function renderIngredients(ingredients, servings) {
-  const list = document.getElementById("ingredientList");
-  if (!list) return;
+const ingredientList = ingredients.length
+  ? ingredients
+      .map((ing) => {
+        const name = ing.ingredient_name ?? "Unknown ingredient";
+        const amount = ing.amount_per_ingredient;
+        const unit = ing.units ?? "";
 
-  list.innerHTML = ingredients.map(ing => {
-    const amount = ing.amount_per_ingredient ? Number(ing.amount_per_ingredient) : 0;
-    const unit = ing.units ?? "";
-    const name = ing.ingredient_name ?? "Unknown";
+        return `
+          <li 
+            data-base-amount="${amount ?? ""}"
+            data-unit="${unit}"
+          >
+            <span class="amount">
+              ${amount ?? ""}
+            </span>
+            <span class="unit">${unit}</span>
+            ${name}
+          </li>
+        `;
+      })
+      .join("")
+  : "<li>No ingredients listed.</li>";
+  const servingInput = document.getElementById("servingInput");
+if (servingInput) {
+  servingInput.value = baseServings;
 
-    const scaled = (amount * servings).toFixed(2).replace(/\.00$/, "");
+  servingInput.addEventListener("input", () => {
+    const newServings = Number(servingInput.value);
+    if (!newServings || newServings <= 0) return;
 
-    return `<li>${scaled} ${unit} ${name}</li>`;
-  }).join("");
+    const scaleFactor = newServings / baseServings;
+
+    container.querySelectorAll("li[data-base-amount]").forEach(li => {
+      const baseAmount = Number(li.dataset.baseAmount);
+      if (!baseAmount) return;
+
+      const scaled = baseAmount * scaleFactor;
+      li.querySelector(".amount").textContent =
+        Number.isInteger(scaled)
+          ? scaled
+          : scaled.toFixed(2);
+    });
+  });
 }
+
+}
+
+
 
 
 // =======================
