@@ -546,25 +546,7 @@ function displaySingleRecipe(r, ingredients) {
       <h3>Tags</h3>
       <p>${r.tags?.join(", ") || "None"}</p>
   `;
-  const servingInput = document.getElementById("servingInput");
-  if (servingInput) {
-    servingInput.addEventListener("input", () => {
-      const newServings = Number(servingInput.value);
-      if (!newServings || newServings <= 0) return;
-
-      const scaleFactor = newServings / baseServings;
-
-      container.querySelectorAll("li[data-base-amount]").forEach(li => {
-        const baseAmount = Number(li.dataset.baseAmount);
-        if (!baseAmount) return;
-
-        const scaled = baseAmount * scaleFactor;
-        li.querySelector(".amount").textContent =
-          Number.isInteger(scaled)
-            ? scaled
-            : scaled.toFixed(2);
-    });
-  });
+  
 }
 
   
