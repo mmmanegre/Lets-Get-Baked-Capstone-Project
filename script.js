@@ -504,10 +504,19 @@ function displaySingleRecipe(r, ingredients) {
     ? ingredients
         .map((ing) => {
           const name = ing.ingredient_name ?? "Unknown ingredient";
-          const amount = ing.amount_per_ingredient ?? "";
+          const amount = ing.amount_per_ingredient;
           const unit = ing.units ?? "";
 
-          return `<li class="ingredient-item">${amount} ${unit} ${name}</li>`;
+          return `
+            <li 
+              data-base-amount="${amount ?? ""}"
+              data-unit="${unit}"
+            >
+              <span class="amount">${amount ?? ""}</span>
+              <span class="unit">${unit}</span>
+              ${name}
+            </li>
+          `;
         })
         .join("")
     : "<li>No ingredients listed.</li>";
@@ -526,7 +535,7 @@ function displaySingleRecipe(r, ingredients) {
       <p>${r.calories ?? "N/A"}</p>
 
       <h3>Servings</h3>
-      <p>${r.servings ?? "N/A"}</p>
+      <input type="number" id="servingInput" min="1" value="${baseServings}" />
 
       <h3>Serving Size</h3>
       <p>${r.serving_size ?? "N/A"}</p>
@@ -537,60 +546,35 @@ function displaySingleRecipe(r, ingredients) {
       <h3>Tags</h3>
       <p>${r.tags?.join(", ") || "None"}</p>
   `;
+  const servingInput = document.getElementById("servingInput");
+  if (servingInput) {
+    servingInput.addEventListener("input", () => {
+      const newServings = Number(servingInput.value);
+      if (!newServings || newServings <= 0) return;
+
+      const scaleFactor = newServings / baseServings;
+
+      container.querySelectorAll("li[data-base-amount]").forEach(li => {
+        const baseAmount = Number(li.dataset.baseAmount);
+        if (!baseAmount) return;
+
+        const scaled = baseAmount * scaleFactor;
+        li.querySelector(".amount").textContent =
+          Number.isInteger(scaled)
+            ? scaled
+            : scaled.toFixed(2);
+    });
+  });
+}
 
   
   const cartBtn = document.getElementById("cartbtn");
   if (cartBtn) {
     cartBtn.onclick = () => addIngredientsToCart(r, ingredients);
   }
-  //===========
-//recipe scaling
-//===========
-const ingredientList = ingredients.length
-  ? ingredients
-      .map((ing) => {
-        const name = ing.ingredient_name ?? "Unknown ingredient";
-        const amount = ing.amount_per_ingredient;
-        const unit = ing.units ?? "";
 
-        return `
-          <li 
-            data-base-amount="${amount ?? ""}"
-            data-unit="${unit}"
-          >
-            <span class="amount">
-              ${amount ?? ""}
-            </span>
-            <span class="unit">${unit}</span>
-            ${name}
-          </li>
-        `;
-      })
-      .join("")
-  : "<li>No ingredients listed.</li>";
-  const servingInput = document.getElementById("servingInput");
-if (servingInput) {
-  servingInput.value = baseServings;
 
-  servingInput.addEventListener("input", () => {
-    const newServings = Number(servingInput.value);
-    if (!newServings || newServings <= 0) return;
-
-    const scaleFactor = newServings / baseServings;
-
-    container.querySelectorAll("li[data-base-amount]").forEach(li => {
-      const baseAmount = Number(li.dataset.baseAmount);
-      if (!baseAmount) return;
-
-      const scaled = baseAmount * scaleFactor;
-      li.querySelector(".amount").textContent =
-        Number.isInteger(scaled)
-          ? scaled
-          : scaled.toFixed(2);
-    });
-  });
-}
-
+  
 }
 
 
