@@ -492,8 +492,6 @@ function displaySingleRecipe(r, ingredients) {
   const container = document.getElementById("recipe-container");
   if (!container) return;
 
-  const BaseServings = Number(r.servings) || 1;
-
   const minutes = r.cooktime
     ? parseInt(r.cooktime.split(":")[1]) +
       parseInt(r.cooktime.split(":")[0]) * 60
