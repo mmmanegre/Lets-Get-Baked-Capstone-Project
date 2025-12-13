@@ -502,19 +502,10 @@ function displaySingleRecipe(r, ingredients) {
     ? ingredients
         .map((ing) => {
           const name = ing.ingredient_name ?? "Unknown ingredient";
-          const amount = ing.amount_per_ingredient;
+          const amount = ing.amount_per_ingredient ?? "";
           const unit = ing.units ?? "";
 
-          return `
-            <li 
-              data-base-amount="${amount ?? ""}"
-              data-unit="${unit}"
-            >
-              <span class="amount">${amount ?? ""}</span>
-              <span class="unit">${unit}</span>
-              ${name}
-            </li>
-          `;
+          return `<li>${amount} ${unit} ${name}</li>`;
         })
         .join("")
     : "<li>No ingredients listed.</li>";
