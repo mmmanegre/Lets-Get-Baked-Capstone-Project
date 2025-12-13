@@ -35,118 +35,50 @@
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 
     const supabase = createClient(
-        "https://vbbxceqbzcfieymlcksu.supabase.co",
-        "YOUR_PUBLIC_ANON_KEY"
+    "https://vbbxceqbzcfieymlcksu.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg"
     );
 
-    // ---------- local storage helpers ----------
-    function getLocalCart() {
-        return JSON.parse(localStorage.getItem("cartIngredients")) || [];
-    }
+    const listEl = document.getElementById("shopping-list");
 
-    function saveLocalCart(cart) {
-        localStorage.setItem("cartIngredients", JSON.stringify(cart));
-    }
-
-    function clearLocalCart() {
-        localStorage.removeItem("cartIngredients");
-    }
-
-    // ---------- UI render helper ----------
     function renderItems(items) {
-        // Example: replace this with your actual rendering logic
-        const container = document.getElementById("shopping-list");
-        if (!container) return;
-        container.innerHTML = "";
-        items.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = item.ingredient || item; // adapt depending on row shape
-            container.appendChild(li);
-        });
+    listEl.innerHTML = "";
+    if (items.length === 0) {
+        listEl.innerHTML = "<li>No items yet.</li>";
+        return;
     }
 
-    // ---------- load items from Supabase ----------
-    async function loadFromSupabase(userId) {
-        if (!userId) return [];
-        const { data, error } = await supabase
-            .from("shopping_list")
-            .select("ingredient")
-            .eq("user_id", userId);
-
-        if (error) {
-            console.error("Error loading from Supabase:", error);
-            return [];
-        }
-        // If select returns { ingredient: "..."} objects, map to simple array
-        return data.map(d => d.ingredient || d);
-    }
-
-    // ---------- sync local to Supabase ----------
-    async function syncLocalToDB(userId) {
-        const local = getLocalCart();
-        if (local.length === 0) return;
-
-        const rows = local.map(item => ({
-            user_id: userId,
-            ingredient: item
-        }));
-
-        const { error } = await supabase.from("shopping_list").insert(rows);
-        if (error) {
-            console.error("Sync insert error:", error);
-            return;
-        }
-
-        clearLocalCart();
-    }
-
-    // ---------- main load logic ----------
-    async function initShoppingPage() {
-        // 1) render any local items immediately
-        const localItems = getLocalCart();
-        if (localItems.length > 0) {
-            renderItems(localItems.map(i => ({ ingredient: i })));
-        }
-
-        // 2) if user is already logged in, load from DB too
-        const { data: userData } = await supabase.auth.getUser();
-        const user = userData?.user;
-        if (user) {
-            const dbItems = await loadFromSupabase(user.id);
-            if (dbItems.length > 0) renderItems(dbItems.map(i => ({ ingredient: i })));
-        }
-    }
-
-    // ---------- listen for login events ----------
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-        (event, session) => {
-            // Supabase docs suggest making other calls after the callback finishes
-            // to avoid running other Supabase functions directly inside here.
-            setTimeout(async () => {
-                if (event === "SIGNED_IN" && session?.user) {
-                    // sync local, then reload from DB
-                    await syncLocalToDB(session.user.id);
-                    const dbItems = await loadFromSupabase(session.user.id);
-                    if (dbItems.length > 0) renderItems(dbItems.map(i => ({ ingredient: i })));
-                }
-                if (event === "SIGNED_OUT") {
-                    // optional: clear UI or revert to local only
-                    renderItems(getLocalCart().map(i => ({ ingredient: i })));
-                }
-            }, 0);
-        }
-    );
-
-    // ---------- run on page load ----------
-    document.addEventListener("DOMContentLoaded", () => {
-        // make sure there is a container to show items
-        if (!document.getElementById("shopping-list")) {
-            const ul = document.createElement("ul");
-            ul.id = "shopping-list";
-            document.body.appendChild(ul);
-        }
-        initShoppingPage();
+    items.forEach(i => {
+        const li = document.createElement("li");
+        li.textContent = i.ingredient;
+        listEl.appendChild(li);
     });
+    }
+
+    async function loadShoppingList() {
+    const storedUser = localStorage.getItem("loggedInUser");
+    if (!storedUser) {
+        renderItems([]);
+        return;
+    }
+
+    const { username } = JSON.parse(storedUser);
+
+    const { data, error } = await supabase
+        .from("shopping_list")
+        .select("ingredient")
+        .eq("username", username);
+
+    if (error) {
+        console.error("Load error:", error);
+        renderItems([]);
+        return;
+    }
+
+    renderItems(data || []);
+    }
+
+    document.addEventListener("DOMContentLoaded", loadShoppingList);
     </script>
 
 

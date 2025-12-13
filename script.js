@@ -569,18 +569,16 @@ function setupSaveButton() {
 }
 
 // =======================
-// ADD TO CART (SHOPPING LIST)
+// ADD TO CART (FIXED)
 // =======================
 async function addIngredientsToCart(recipe, ingredients) {
   const storedUser = localStorage.getItem("loggedInUser");
-  const loggedInUser = storedUser ? JSON.parse(storedUser) : null;
-
-  if (!loggedInUser) {
+  if (!storedUser) {
     showToast("Please log in to add items 🛒");
     return;
   }
 
-  const username = loggedInUser.username;
+  const { username } = JSON.parse(storedUser);
 
   const ingredientElements = document.querySelectorAll(".ingredient-item");
   if (ingredientElements.length === 0) {
@@ -589,16 +587,18 @@ async function addIngredientsToCart(recipe, ingredients) {
   }
 
   const rows = Array.from(ingredientElements).map(li => ({
-    username,
+    username: username,          // ✅ MATCHES shopping_list table
     recipe_id: recipe.id,
     ingredient: li.textContent.trim()
   }));
 
-  const { error } = await supabase.from("shopping_list").insert(rows);
+  const { error } = await supabase
+    .from("shopping_list")
+    .insert(rows);
 
   if (error) {
-    console.error("Cart error:", error);
-    showToast("Could not add to cart ❌");
+    console.error("Cart insert error:", error);
+    showToast("Could not add to shopping list ❌");
   } else {
     showToast("Ingredients added to shopping list! 🛒");
   }
@@ -644,4 +644,3 @@ async function loadUserTags(username) {
     list.appendChild(li);
   });
 }
-
