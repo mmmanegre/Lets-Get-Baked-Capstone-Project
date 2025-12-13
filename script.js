@@ -492,6 +492,8 @@ function displaySingleRecipe(r, ingredients) {
   const container = document.getElementById("recipe-container");
   if (!container) return;
 
+  const originalServings = r.servings || 1;
+
   const minutes = r.cooktime
     ? parseInt(r.cooktime.split(":")[1]) +
       parseInt(r.cooktime.split(":")[0]) * 60
@@ -542,6 +544,24 @@ function displaySingleRecipe(r, ingredients) {
     cartBtn.onclick = () => addIngredientsToCart(r, ingredients);
   }
 }
+//===========
+//recipe scaling
+//===========
+function renderIngredients(ingredients, servings) {
+  const list = document.getElementById("ingredientList");
+  if (!list) return;
+
+  list.innerHTML = ingredients.map(ing => {
+    const amount = ing.amount_per_ingredient ? Number(ing.amount_per_ingredient) : 0;
+    const unit = ing.units ?? "";
+    const name = ing.ingredient_name ?? "Unknown";
+
+    const scaled = (amount * servings).toFixed(2).replace(/\.00$/, "");
+
+    return `<li>${scaled} ${unit} ${name}</li>`;
+  }).join("");
+}
+
 
 // =======================
 // SAVE BUTTON
