@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Recipes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="head">
+            <img src="images/logo2.png" class="logo">
+
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="profile.html">Profile</a>
+                <a href="savedrecipes.html">My Recipes</a>
+                <a href="shop.html">Shopping List</a>
+            </nav>
+        </div>
+    </header>
+
+    <section>
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+    </section>
+
+    <main>
+        <h2>Saved Recipes</h2>
+        <div id="saved-list" class="results-grid"></div>
+    </main>
+
+        <!-- Toast Notification -->
+    <div id="toast"></div>
+    
+    <!-- Confirmation Popup -->
+    <div id="confirm-popup" class="confirm hidden">
+        <div class="confirm-box">
+            <p id="confirm-message"></p>
+            <div class="confirm-buttons">
+                <button id="confirm-yes" class="yes">Yes</button>
+                <button id="confirm-no" class="no">No</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <footer>
+        <p>Created by Michelle, Kaylee, and Ellie</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!--<script type="module" src="script.js"></script>-->
+    <script type="module" src="./scripts/main.js"></script>
+    
+
+</body>
+</html>

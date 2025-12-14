@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title> User Profile</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        
+        <div class="head">
+            <img src="images/logo2.png" class="logo">
+        
+        
+            <nav>
+        <a href="index.html">Home</a>
+        <a href="profile.html">Profile</a>
+        <a href="savedrecipes.html">My Recipes</a>
+        <a href="shop.html">Shopping List</a>
+            </nav>
+        </div>
+        
+    </header>
+
+    <section>
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+    </section>
+    <main>
+        <div class="profile-page">
+
+            <h1 id="welcomeMsg" class="profile-hello">Hello!</h1>
+
+            <!-- Interests -->
+            <section class="profile-card">
+            <h2 class="profile-card__title">Saved Interests:</h2>
+            <ul id="userTagsList" class="profile-list"></ul>
+            </section>
+
+            <p class="profile-help">
+            Has your taste changed? Click on an interest to delete and then click save.
+            Add new interests below then save.
+            </p>
+
+            <div class="profile-input-row">
+            <input type="text" id="interestInput" class="profile-input" placeholder="Add an interest..." />
+            <button id="addInterestBtn" class="profile-btn profile-btn--small">Add</button>
+            <button id="saveInterestsBtn" class="profile-btn">Save</button>
+            </div>
+            <p id="interestStatus" class="profile-status"></p>
+
+            <!-- Preferences -->
+            <section class="profile-card">
+            <h2 class="profile-card__title">Your Preferences:</h2>
+            <ul id="avoidList" class="profile-list"></ul>
+            </section>
+
+            <p class="profile-help">
+            Allergies? Foods you just don't like? Add them here and we will filter out any recipes that contain these ingredients.
+            </p>
+
+            <div class="profile-input-row">
+            <input type="text" id="avoidInput" class="profile-input" placeholder="Add an ingredient..." />
+            <button id="addAvoidBtn" class="profile-btn profile-btn--small">Add</button>
+            <button id="saveprefbtn" class="profile-btn">Save</button>
+            </div>
+            <p id="prefstatus" class="profile-status"></p>
+
+        </div>
+    </main>
+
+    <footer>
+        <p>Created by Michelle, Kaylee, and Ellie</p>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="./scripts/main.js"></script>
+
+</body>
+</html>

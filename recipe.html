@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recipe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="head">
+            <img src="images/logo2.png" class="logo">
+
+            <nav>
+                <a href="index.html">Home</a>
+                <a href="profile.html">Profile</a>
+                <a href="savedrecipes.html">My Recipes</a>
+                <a href="shop.html">Shopping List</a>
+            </nav>
+        </div>
+    </header>
+
+    <section>
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+    </section>
+
+    <main>
+        <div id="recipe-container"></div>
+
+        <section>
+            Like this recipe? <button id="savebtn">❤️</button>
+            Add to Shopping List <button id="cartbtn" class="cart-btn">📃</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>Created by Michelle, Kaylee, and Ellie</p>
+    </footer>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!--<script type="module" src="script.js"></script>-->
+    <script type="module" src="./scripts/main.js"></script>
+
+    <!-- Toast notification -->
+    <div id="toast"> class="toast"</div>
+
+</body>
+</html>
