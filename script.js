@@ -523,7 +523,7 @@ function displaySingleRecipe(r, ingredients) {
       <h3>Calories</h3>
       <p>${r.calories ?? "N/A"}</p>
 
-      
+      <h3>Servings</h3>
 
       <h3>Serving Size</h3>
       <p>${r.serving_size ?? "N/A"}</p>
@@ -536,16 +536,7 @@ function displaySingleRecipe(r, ingredients) {
   `;
   
 }
-
   
-  const cartBtn = document.getElementById("cartbtn");
-  if (cartBtn) {
-    cartBtn.onclick = () => addIngredientsToCart(r, ingredients);
-  }
-
-
-  
-}
 
 
 
