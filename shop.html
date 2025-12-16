@@ -50,6 +50,105 @@
     <div id="toast"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+    const SUPABASE_URL = "https://vbbxceqbzcfieymlcksu.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    document.addEventListener("DOMContentLoaded", async () => {
+      const listEl = document.getElementById("shopping-list");
+      const clearBtn = document.getElementById("clearCartBtn");
+    
+      const stored = localStorage.getItem("loggedInUser");
+      if (!stored) {
+        listEl.innerHTML = "<li>Please log in to see your shopping list.</li>";
+        return;
+      }
+    
+      const { username } = JSON.parse(stored);
+    
+      // Load cart items
+      async function loadCart() {
+        const { data, error } = await supabase
+          .from("cartingredients")
+          .select("*")
+          .eq("userid", username);
+    
+        if (error) {
+          console.error("Failed to load cart:", error);
+          listEl.innerHTML = "<li>Error loading shopping list.</li>";
+          return;
+        }
+    
+        listEl.innerHTML = "";
+    
+        if (!data || data.length === 0) {
+          listEl.innerHTML = "<li>No items yet.</li>";
+          return;
+        }
+    
+        data.forEach((row, index) => {
+          if (!row.ingredients) return;
+    
+          row.ingredients.forEach((ingredient, i) => {
+            const li = document.createElement("li");
+            const quantity = Array.isArray(row.quantity) ? row.quantity[i] || "" : row.quantity || "";
+            const unit = Array.isArray(row.unit) ? row.unit[i] || "" : row.unit || "";
+            li.textContent = `${ingredient} ${quantity} ${unit}`.trim();
+    
+            const removeBtn = document.createElement("button");
+            removeBtn.textContent = "Remove";
+            removeBtn.style.marginLeft = "10px";
+            removeBtn.onclick = async () => {
+              // Remove single ingredient from array
+              const updatedIngredients = row.ingredients.filter((_, idx) => idx !== i);
+              const updatedQuantity = Array.isArray(row.quantity) ? row.quantity.filter((_, idx) => idx !== i) : null;
+              const updatedUnit = Array.isArray(row.unit) ? row.unit.filter((_, idx) => idx !== i) : null;
+    
+              if (updatedIngredients.length === 0) {
+                // Remove entire row if no ingredients left
+                await supabase.from("cartingredients").delete().eq("userid", username).eq("recipeid", row.recipeid);
+              } else {
+                await supabase.from("cartingredients").update({
+                  ingredients: updatedIngredients,
+                  quantity: updatedQuantity,
+                  unit: updatedUnit
+                }).eq("userid", username).eq("recipeid", row.recipeid);
+              }
+    
+              loadCart();
+            };
+    
+            li.appendChild(removeBtn);
+            listEl.appendChild(li);
+          });
+        });
+      }
+    
+      // Clear cart
+      clearBtn.addEventListener("click", async () => {
+        const confirmed = confirm("Are you sure you want to clear the entire cart?");
+        if (!confirmed) return;
+    
+        const { error } = await supabase
+          .from("cartingredients")
+          .delete()
+          .eq("userid", username);
+    
+        if (error) {
+          alert("Failed to clear cart ❌");
+          console.error(error);
+        } else {
+          loadCart();
+        }
+      });
+    
+      loadCart();
+    });
+</script>
+
+    
     <!--<script type="module" src="script.js"></script>-->
     <script type="module" src="./scripts/main.js"></script>
 
