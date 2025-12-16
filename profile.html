@@ -22,35 +22,64 @@
         </div>
         
     </header>
-    
+
+    <section>
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+    </section>
     <main>
-        <div class="profileinfo">
-        <h3>User Profile</h3>
-        <h2 id="welcomeMsg"></h2>
-        
-        <div class="usertags-box">
-            <h3>Your Interests</h3>
-            <ul id="userTagsList"></ul>
-        </div>
+        <div class="profile-page">
 
-        </div>
-        <div class="pref-box">
-            <h2>Your Preferences</h2>
-            <p>Input any allergens, or ingredients you do not want in searched recipes</p>
-            <input type="text" id="avoidInput"/>
-            <button id="addAvoidBtn">Add</button>
+            <h1 id="welcomeMsg" class="profile-hello">Hello!</h1>
 
-            <h3>Current List of Filtered out Ingredients</h3>
-            <ul id="avoidList"></ul>
+            <!-- Interests -->
+            <section class="profile-card">
+            <h2 class="profile-card__title">Saved Interests:</h2>
+            <ul id="userTagsList" class="profile-list"></ul>
+            </section>
 
-            <button id="saveprefbtn">Save Preferences</button>
-            <p id="prefstatus"></p>
+            <p class="profile-help">
+            Has your taste changed? Click on an interest to delete and then click save.
+            Add new interests below then save.
+            </p>
+
+            <div class="profile-input-row">
+            <input type="text" id="interestInput" class="profile-input" placeholder="Add an interest..." />
+            <button id="addInterestBtn" class="profile-btn profile-btn--small">Add</button>
+            <button id="saveInterestsBtn" class="profile-btn">Save</button>
+            </div>
+            <p id="interestStatus" class="profile-status"></p>
+
+            <!-- Preferences -->
+            <section class="profile-card">
+            <h2 class="profile-card__title">Your Preferences:</h2>
+            <ul id="avoidList" class="profile-list"></ul>
+            </section>
+
+            <p class="profile-help">
+            Allergies? Foods you just don't like? Add them here and we will filter out any recipes that contain these ingredients.
+            </p>
+
+            <div class="profile-input-row">
+            <input type="text" id="avoidInput" class="profile-input" placeholder="Add an ingredient..." />
+            <button id="addAvoidBtn" class="profile-btn profile-btn--small">Add</button>
+            <button id="saveprefbtn" class="profile-btn">Save</button>
+            </div>
+            <p id="prefstatus" class="profile-status"></p>
+
         </div>
     </main>
+
     <footer>
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js" defer></script>
+    <script type="module" src="./scripts/main.js"></script>
+
 </body>
 </html>
