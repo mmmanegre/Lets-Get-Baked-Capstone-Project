@@ -6,24 +6,32 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="forms">
-        <h2>Login</h2>
-        <form id="loginForm">
-            <label>username</label>
-            <input type="text" id="loginUsername" placeholder="Username" required />
+  <main class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="images/logo1.png" class="logo" alt="Let's Get Baked logo" />
+      </div>
 
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="Password" required />
+      <h1 class="auth-title">Welcome!</h1>
 
-            <button type="submit">Login</button>
-        </form>
-        <p>Don't have an account? <a href="signup.html">Sign up</a></p>
+      <form id="loginForm" class="auth-form">
+        <label class="sr-only" for="loginUsername">Username</label>
+        <input id="loginUsername" class="auth-input" type="text" placeholder="Username" required />
+
+        <label class="sr-only" for="loginPassword">Password</label>
+        <input id="loginPassword" class="auth-input" type="password" placeholder="Password" required />
+
+        <button type="submit" class="auth-btn">Log In</button>
+      </form>
+
+      <p class="auth-link">Don't have an account? <a href="signup.html">Sign up</a></p>
     </div>
+  </main>
 
-    
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module" src="./scripts/main.js"></script>
 </body>
+
 
 
 </html>
