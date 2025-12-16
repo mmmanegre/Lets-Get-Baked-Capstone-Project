@@ -1,29 +1,51 @@
+
 <!DOCTYPE html>
 <html lang="en">
-    
+<head>
+  <meta charset="UTF-8" />
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-    <head>
-        <title>Sign Up</title>
-        <link rel="stylesheet" href="style.css">
-    </head>
+<body>
+  <main class="auth-page">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <img src="images/logo1.png" class="logo" alt="Let's Get Baked logo" />
+      </div>
 
-    <body>
-        <div class="forms">
-            <h2>Create an Account</h2>
-            <form id="signupForm">
-                
-                <label>username</label>
-                <input type="text" id="signupUsername" placeholder="Username" required><br>
+      <h1 class="auth-title">Welcome!</h1>
 
-                <label>Password</label>
-                <input type="password" id="signupPassword" placeholder="Password" required><br>
+      <form id="signupForm" class="auth-form">
+        <label class="sr-only" for="signupUsername">Username</label>
+        <input
+          type="text"
+          id="signupUsername"
+          class="auth-input"
+          placeholder="Username"
+          required
+        />
 
-                <button type="submit">Sign Up</button>
-            </form>
-        </div>
-        <p>Already have an account? <a href="login.html">Log in here</a></p>
-    </body>
+        <label class="sr-only" for="signupPassword">Password</label>
+        <input
+          type="password"
+          id="signupPassword"
+          class="auth-input"
+          placeholder="Password"
+          required
+        />
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="script.js" defer></script>
+        <button type="submit" class="auth-btn">Sign Up</button>
+      </form>
+
+      <p class="auth-link">
+        Already have an account? <a href="login.html">Log in</a>
+      </p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Use the same module you use everywhere else -->
+  <script type="module" src="./scripts/main.js"></script>
+</body>
 </html>
