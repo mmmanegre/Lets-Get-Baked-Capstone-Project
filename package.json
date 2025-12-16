@@ -1,0 +1,29 @@
+{
+  "name": "lets-get-baked-capstone-project-main",
+  "version": "1.0.0",
+  "description": "Created by: Michelle Manegre, Kaylee Broadfield, and Ellie Mawuenyega",
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:integration": "playwright test -c tests/playwright.config.js",
+    "test:integration:ui": "playwright test -c tests/playwright.config.js --ui"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mmmanegre/Lets-Get-Baked-Capstone-Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mmmanegre/Lets-Get-Baked-Capstone-Project/issues"
+  },
+  "homepage": "https://github.com/mmmanegre/Lets-Get-Baked-Capstone-Project#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "http-server": "^14.1.1",
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0"
+  }
+}
