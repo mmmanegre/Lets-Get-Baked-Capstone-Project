@@ -31,7 +31,6 @@
                 type="text"
                 name="query"
                 placeholder="Search recipes..."
-                required
             />
             <button type="submit">🔍</button>
 
@@ -191,9 +190,18 @@
         </div>
     </aside>
 
+    <section id="recommendedSection" class="recommended-section">
+        <h2 class="recommended-title">Recommended for you</h2>
+        <div id="recommendedBox" class="results-grid"></div>
+    </section>
+
+
+    <div id="resultsBox"></div>
+
     <main>
-        main area (recs?)
+
     </main>
+
 
     <footer>
         <p>Created by Michelle Kaylee and Ellie</p>
@@ -201,6 +209,8 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js" defer></script>
+    <!-- <script src="scripts/main.js" defer></script> -->
+    <script type="module" src="./scripts/main.js"></script>
+
 </body>
 </html>
