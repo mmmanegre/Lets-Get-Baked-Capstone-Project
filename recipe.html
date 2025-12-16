@@ -21,18 +21,22 @@
         </div>
     </header>
 
+    <section>
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+        <img src="images/flower.png" class="flower">
+    </section>
+
     <main>
         <div id="recipe-container"></div>
-        <div class="scaling-box">
-            <h3>Scale Recipe</h3>
-            <label>Servings:</label>
-            <input type="number" id="servingScaler" min="1" value="">
-            <button id="applyScaleBtn">Apply</button>
-        </div>
 
         <section>
             Like this recipe? <button id="savebtn">❤️</button>
-            Add to Cart <button id="cartbtn" class="cart-btn">🛒</button>
+            Add to Shopping List <button id="cartbtn" class="cart-btn">📃</button>
         </section>
     </main>
 
@@ -40,16 +44,13 @@
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
 
-    <!-- Supabase -->
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <!-- Your JS -->
-    <script src="script.js"></script>
-
-
+    <!--<script type="module" src="script.js"></script>-->
+    <script type="module" src="./scripts/main.js"></script>
 
     <!-- Toast notification -->
-    <div id="toast">Recipe saved! ❤️</div>
+    <div id="toast"> class="toast"</div>
 
 </body>
 </html>
