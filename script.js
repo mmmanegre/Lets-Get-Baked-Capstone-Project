@@ -112,7 +112,10 @@ function setupLogin() {
 
     if (error || !user) return alert("Invalid login");
 
-    localStorage.setItem("loggedInUser", JSON.stringify({ username }));
+    localStorage.setItem(
+      "loggedInUser",
+      JSON.stringify({ id: user.id, username: user.username })
+    );
     window.location.href = "index.html";
   });
 }
@@ -542,30 +545,73 @@ function displaySingleRecipe(r, ingredients) {
 // SAVE BUTTON
 // =======================
 function setupSaveButton() {
+  const saveBtn = document.getElementById("savebtn");
   if (!saveBtn) return;
 
-  saveBtn.addEventListener("click", () => {
-    const container = document.getElementById("recipe-container");
-    const recipeName = container?.querySelector("h1")?.textContent;
-    const recipeId = new URLSearchParams(window.location.search).get("id");
+  saveBtn.addEventListener("click", async () => {
+    const stored = localStorage.getItem("loggedInUser");
+    if (!stored) return showToast("Login required ❌");
 
-    if (!recipeName || !recipeId)
-      return showToast("Error: Cannot save recipe ❌");
+    const { username } = JSON.parse(stored);
+    const recipeid = new URLSearchParams(window.location.search).get("id");
 
-    let saved = JSON.parse(localStorage.getItem("savedRecipes")) || [];
-    if (saved.some((r) => r.id === recipeId))
-      return showToast("Already saved ✔️");
+    if (!username || !recipeid) {
+      console.error("Missing username or recipeid");
+      return;
+    }
 
-    saved.push({ name: recipeName, id: recipeId });
-    localStorage.setItem("savedRecipes", JSON.stringify(saved));
+    const { error } = await supabase
+      .from("savedrecipes")
+      .insert({
+        userid: username,
+        recipeid: recipeid
+      });
 
-    showToast("Recipe saved! ❤️");
+    if (error) {
+      if (error.code === "23505") {
+        showToast("Already saved ✔️");
+        return;
+      }
+
+      console.error("Save failed:", error);
+      showToast("Save failed ❌");
+      return;
+    }
+
+    showToast("Recipe saved ❤️");
   });
 }
 
-// ==============================
-// ADD TO SHOPPING LIST (LOCAL)
-// ==============================
+
+
+async function loadSavedRecipes() {
+  const stored = localStorage.getItem("loggedInUser");
+  if (!stored) return;
+
+  const { username } = JSON.parse(stored);
+
+  const { data, error } = await supabase
+    .from("savedrecipes")
+    .select(`
+      recipeid,
+      recipes (
+        id,
+        name,
+        picture
+      )
+    `)
+    .eq("userid", username);
+
+  if (error) {
+    console.error("Error loading saved recipes:", error);
+    return;
+  }
+
+  // render saved recipes here
+}
+
+
+
 
 // Get shopping list from localStorage
 function getShoppingList() {
@@ -578,29 +624,82 @@ function saveShoppingList(list) {
 }
 
 // Add ingredients to shopping list
-function addToShoppingList() {
-    const ingredientEls = document.querySelectorAll(".ingredient-item");
+async function addToShoppingList() {
+  const stored = localStorage.getItem("loggedInUser");
+  if (!stored) return alert("Please log in");
 
-    if (ingredientEls.length === 0) {
-        alert("No ingredients found.");
-        return;
+  const username = JSON.parse(stored).username;
+  const ingredientEls = document.querySelectorAll(".ingredient-item");
+
+  if (ingredientEls.length === 0) {
+    alert("No ingredients found.");
+    return;
+  }
+
+  // Prepare arrays for Supabase
+  const ingredients = [];
+  const quantities = [];
+
+  ingredientEls.forEach(el => {
+    const text = el.textContent.trim(); // e.g., "1 cup sugar"
+    const parts = text.split(" ");
+    const quantity = parts[0];
+    const unit = parts[1];
+    const ingredient = parts.slice(2).join(" ");
+
+    ingredients.push(ingredient);
+    quantities.push(quantity + " " + unit);
+  });
+
+  try {
+    const { data, error } = await supabase
+      .from("cartingredients")
+      .upsert(
+        { userid: username, ingredients, quantity: quantities },
+        { onConflict: "userid" }
+      );
+
+    if (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add items to cart ❌");
+      return;
     }
 
-    const ingredients = Array.from(ingredientEls).map(el =>
-        el.textContent.trim()
-    );
-
-    const shoppingList = getShoppingList();
-
-    ingredients.forEach(item => {
-        if (!shoppingList.includes(item)) {
-            shoppingList.push(item);
-        }
-    });
-
-    saveShoppingList(shoppingList);
-    alert("Ingredients added to shopping list 🛒");
+    alert("Ingredients added to your cart 🛒");
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    alert("Failed to add items to cart ❌");
+  }
 }
+
+// Load cart later if needed
+async function loadShoppingCart() {
+  const stored = localStorage.getItem("loggedInUser");
+  if (!stored) return;
+
+  const { username } = JSON.parse(stored);
+
+  const { data, error } = await supabase
+    .from("shoppingcart")
+    .select("item")
+    .eq("userid", username); // ✅ FIX
+
+  if (error) {
+    console.error("Load cart error:", error);
+    return;
+  }
+
+  const list = document.getElementById("cartList");
+  list.innerHTML = "";
+
+  (data || []).forEach(i => {
+    const li = document.createElement("li");
+    li.textContent = i.item;
+    list.appendChild(li);
+  });
+}
+
+
 
 // Attach button listener
 document.addEventListener("DOMContentLoaded", () => {
@@ -614,20 +713,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cartBtn.addEventListener("click", addToShoppingList);
 });
 
-
-// ----------------------
-// BUTTON WIRING
-// ----------------------
-document.addEventListener("DOMContentLoaded", () => {
-  const cartBtn = document.getElementById("cartbtn");
-
-  if (!cartBtn) {
-    console.error("cartbtn not found");
-    return;
-  }
-
-  cartBtn.addEventListener("click", addToShoppingList);
-});
 
 function showToast(msg) {
   const toast = document.getElementById("toast");

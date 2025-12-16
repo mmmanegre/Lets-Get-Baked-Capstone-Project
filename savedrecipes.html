@@ -46,94 +46,135 @@
         <p>Created by Michelle, Kaylee, and Ellie</p>
     </footer>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <script>
-    const savedList = document.getElementById("saved-list");
-    let savedRecipes = JSON.parse(localStorage.getItem("savedRecipes")) || [];
-    let lastRemoved = null;
+const SUPABASE_URL = "https://vbbxceqbzcfieymlcksu.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZiYnhjZXFiemNmaWV5bWxja3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE2ODYyMDYsImV4cCI6MjA3NzI2MjIwNn0.KO4SvADxHLPW3IRPU1t_buQcY_Zim-p2G-kcK2v2Akg";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Toast function
-    function showToast(message, undo = false) {
-        const toast = document.getElementById("toast");
-        toast.innerHTML = message + (undo ? ' <button id="undo-btn">Undo</button>' : '');
-        toast.classList.add("show");
+const savedList = document.getElementById("saved-list");
+let lastRemoved = null;
 
-        if (undo) {
-            document.getElementById("undo-btn").onclick = undoRemove;
-        }
+// ---------------------
+// Toast
+// ---------------------
+function showToast(message, undo = false) {
+  const toast = document.getElementById("toast");
+  toast.innerHTML = message + (undo ? ' <button id="undo-btn">Undo</button>' : '');
+  toast.classList.add("show");
 
-        setTimeout(() => {
-            toast.classList.remove("show");
-        }, 3000);
-    }
+  if (undo) {
+    document.getElementById("undo-btn").onclick = undoRemove;
+  }
 
-    // Show custom confirmation popup
-    function showConfirm(message, confirmCallback) {
-        const popup = document.getElementById("confirm-popup");
-        const confirmMessage = document.getElementById("confirm-message");
-        const yesBtn = document.getElementById("confirm-yes");
-        const noBtn = document.getElementById("confirm-no");
+  setTimeout(() => toast.classList.remove("show"), 3000);
+}
 
-        confirmMessage.textContent = message;
-        popup.classList.remove("hidden");
+// ---------------------
+// Confirm Popup
+// ---------------------
+function showConfirm(message, confirmCallback) {
+  const popup = document.getElementById("confirm-popup");
+  document.getElementById("confirm-message").textContent = message;
+  popup.classList.remove("hidden");
 
-        yesBtn.onclick = () => {
-            popup.classList.add("hidden");
-            confirmCallback();
-        };
+  document.getElementById("confirm-yes").onclick = () => {
+    popup.classList.add("hidden");
+    confirmCallback();
+  };
 
-        noBtn.onclick = () => popup.classList.add("hidden");
-    }
+  document.getElementById("confirm-no").onclick = () =>
+    popup.classList.add("hidden");
+}
 
-    // Undo logic
-    function undoRemove() {
-        if (lastRemoved) {
-            savedRecipes.push(lastRemoved);
-            localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
-            lastRemoved = null;
-            renderSavedRecipes();
-            showToast("Undo complete ✔️");
-        }
-    }
+// ---------------------
+// Load Saved Recipes
+// ---------------------
+async function loadSavedRecipes() {
+  const stored = localStorage.getItem("loggedInUser");
+  if (!stored) return;
 
-    // Render saved recipes
-    function renderSavedRecipes() {
-        savedList.innerHTML = ""; 
+  const { username } = JSON.parse(stored);
 
-        if (savedRecipes.length === 0) {
-            savedList.innerHTML = "<p>No saved recipes yet.</p>";
-            return;
-        }
+  const { data, error } = await supabase
+    .from("savedrecipes")
+    .select(`
+      recipeid,
+      recipes (
+        name
+      )
+    `)
+    .eq("userid", username); // ✅ FIX
 
-        savedRecipes.forEach((recipe, index) => {
-            const wrapper = document.createElement("div");
-            wrapper.style.marginBottom = "10px";
+  savedList.innerHTML = "";
 
-            const link = document.createElement("a");
-            link.href = `recipe.html?id=${recipe.id}`;
-            link.textContent = recipe.name;
-            link.style.marginRight = "10px";
+  if (error) {
+    console.error(error);
+    savedList.innerHTML = "<p>Error loading recipes.</p>";
+    return;
+  }
 
-            const removeBtn = document.createElement("button");
-            removeBtn.textContent = "Remove ❌";
-            removeBtn.style.cursor = "pointer";
-            removeBtn.style.padding = "4px 8px";
+  if (!data || data.length === 0) {
+    savedList.innerHTML = "<p>No saved recipes yet.</p>";
+    return;
+  }
 
-            removeBtn.onclick = () => {
-                showConfirm(`Remove "${recipe.name}"?`, () => {
-                    lastRemoved = savedRecipes.splice(index, 1)[0];
-                    localStorage.setItem("savedRecipes", JSON.stringify(savedRecipes));
-                    renderSavedRecipes();
-                    showToast(`Removed "${recipe.name}"`, true);
-                });
-            };
+  data.forEach(row => {
+    const wrapper = document.createElement("div");
+    wrapper.style.marginBottom = "10px";
 
-            wrapper.appendChild(link);
-            wrapper.appendChild(removeBtn);
-            savedList.appendChild(wrapper);
-        });
-    }
+    const link = document.createElement("a");
+    link.href = `recipe.html?id=${row.recipeid}`;
+    link.textContent = row.recipes?.name || "Unknown recipe";
+    link.style.marginRight = "10px";
 
-    renderSavedRecipes();
+    const removeBtn = document.createElement("button");
+    removeBtn.textContent = "Remove ❌";
+    removeBtn.onclick = () =>
+      showConfirm(
+        `Remove "${link.textContent}"?`,
+        () => removeRecipe(username, row.recipeid, link.textContent)
+      );
+
+    wrapper.appendChild(link);
+    wrapper.appendChild(removeBtn);
+    savedList.appendChild(wrapper);
+  });
+}
+
+// ---------------------
+// Remove Recipe
+// ---------------------
+async function removeRecipe(username, recipeid, name) {
+  await supabase
+    .from("savedrecipes")
+    .delete()
+    .eq("userid", username)   // ✅ FIX
+    .eq("recipeid", recipeid);
+
+  lastRemoved = { userid: username, recipeid };
+  loadSavedRecipes();
+  showToast(`Removed "${name}"`, true);
+}
+
+// ---------------------
+// Undo Remove
+// ---------------------
+async function undoRemove() {
+  if (!lastRemoved) return;
+
+  await supabase
+    .from("savedrecipes")
+    .insert(lastRemoved);
+
+  lastRemoved = null;
+  loadSavedRecipes();
+  showToast("Undo complete ✔️");
+}
+
+// ---------------------
+loadSavedRecipes();
 </script>
 
     
